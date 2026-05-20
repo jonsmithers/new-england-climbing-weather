@@ -1,0 +1,25 @@
+.temp-chart {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.temp-line {
+  stroke: var(--color-border);
+  stroke-width: 6;
+  stroke-linecap: round;
+}
+
+.temp-dot-high {
+  fill: var(--color-temp-high);
+}
+
+.temp-dot-low {
+  fill: var(--color-temp-low);
+}
+
+.temp-label {
+  font-size: 10px;
+  fill: var(--color-text);
+  font-family: var(--font);
+}

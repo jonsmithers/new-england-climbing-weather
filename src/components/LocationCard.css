@@ -1,0 +1,40 @@
+.location-card {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 1rem;
+}
+
+.location-name {
+  margin: 0 0 0.75rem;
+  font-size: 1.1rem;
+}
+
+.day-row {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.day {
+  flex: 1;
+  text-align: center;
+}
+
+.day-label {
+  font-size: 0.85rem;
+  color: var(--color-muted);
+  margin-bottom: 0.25rem;
+}
+
+.status {
+  margin: 0;
+  color: var(--color-muted);
+  font-size: 0.9rem;
+}
+
+.status-error {
+  color: var(--color-high);
+  word-break: break-word;
+}
