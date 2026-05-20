@@ -67,7 +67,7 @@ export function LocationCard({ location, weekend }: Props) {
       )}
       <a
         className="forecast-link"
-        href={`https://forecast.weather.gov/MapClick.php?lat=${location.lat}&lon=${location.lon}`}
+        href={`https://forecast.weather.gov/MapClick.php?lat=${location.lat}&lon=${location.lon}&FcstType=graphical`}
         target="_blank"
         rel="noopener noreferrer"
       >
