@@ -65,6 +65,14 @@ export function LocationCard({ location, weekend }: Props) {
       {location.summit && (
         <SummitPanel summit={location.summit} weekend={weekend} />
       )}
+      <a
+        className="forecast-link"
+        href={`https://forecast.weather.gov/MapClick.php?lat=${location.lat}&lon=${location.lon}`}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        Full forecast →
+      </a>
     </article>
   );
 }
