@@ -67,7 +67,7 @@ export function LocationCard({ location, weekend }: Props) {
       )}
       <a
         className="forecast-link"
-        href={`https://forecast.weather.gov/MapClick.php?lat=${location.lat}&lon=${location.lon}&FcstType=graphical`}
+        href={buildForecastUrl(location, weekend)}
         target="_blank"
         rel="noopener noreferrer"
       >
@@ -75,6 +75,63 @@ export function LocationCard({ location, weekend }: Props) {
       </a>
     </article>
   );
+}
+
+// Builds a forecast.weather.gov graphical hourly forecast URL pointed at
+// Saturday morning of the selected weekend.
+//
+// Param reference (from the form on weather.gov's hourly graph page):
+//   AheadHour     hours from "now" to the start of the displayed window
+//   FcstType      "graphical" = the hourly chart view
+//   textField1/2  lat / lon (the form's coordinate inputs)
+//   unit          0 = English, 1 = metric (global toggle)
+//   dd, bw        display flags (dashes/dots, black-and-white); empty = off
+//
+// w0..w8 pick which variables are plotted (each is one row of the chart):
+//   w0=t        temperature
+//   w1=td       dewpoint
+//   w2=hi       heat index
+//   w3=sfcwind  surface wind  (w3u=1 selects mph)
+//   w4=sky      sky cover %
+//   w5=pop      probability of precipitation
+//   w6=rh       relative humidity
+//   w7=rain     rain amount
+//   w8=thunder  thunder probability
+//
+// w10u/w11u/w12u are unit selectors for rows we don't plot (wave/snow/ice),
+// but weather.gov's form posts them regardless, so we include the defaults.
+function buildForecastUrl(location: Location, weekend: Weekend): string {
+  const target = new Date(weekend.saturday);
+  target.setHours(8, 0, 0, 0);
+  const aheadHour = Math.max(
+    0,
+    Math.round((target.getTime() - Date.now()) / 3_600_000),
+  );
+  const params = new URLSearchParams({
+    w0: 't',
+    w1: 'td',
+    w2: 'hi',
+    w3: 'sfcwind',
+    w3u: '1',
+    w4: 'sky',
+    w5: 'pop',
+    w6: 'rh',
+    w7: 'rain',
+    w8: 'thunder',
+    w10u: '0',
+    w11u: '1',
+    w12u: '1',
+    AheadHour: String(aheadHour),
+    Submit: 'Submit',
+    FcstType: 'graphical',
+    textField1: String(location.lat),
+    textField2: String(location.lon),
+    site: 'all',
+    unit: '0',
+    dd: '',
+    bw: '',
+  });
+  return `https://forecast.weather.gov/MapClick.php?${params.toString()}`;
 }
 
 function DayBlock({ label, day }: { label: string; day: DaySummary }) {
