@@ -10,6 +10,13 @@
   --color-high: #dc2626;
   --color-unknown: #9ca3af;
 
+  --color-precip-low-bg: #dbeafe;
+  --color-precip-low-fg: #1e3a8a;
+  --color-precip-med-bg: #3b82f6;
+  --color-precip-med-fg: #ffffff;
+  --color-precip-high-bg: #1e3a8a;
+  --color-precip-high-fg: #ffffff;
+
   --color-temp-high: #dc2626;
   --color-temp-low: #2563eb;
 

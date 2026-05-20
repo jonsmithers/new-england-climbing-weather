@@ -1,34 +1,47 @@
 .precip-badge {
   border-radius: 8px;
   padding: 0.5rem 0.25rem;
-  color: white;
   text-align: center;
 }
 
 .precip-low {
-  background: var(--color-low);
+  background: var(--color-precip-low-bg);
+  color: var(--color-precip-low-fg);
 }
 
 .precip-med {
-  background: var(--color-med);
+  background: var(--color-precip-med-bg);
+  color: var(--color-precip-med-fg);
 }
 
 .precip-high {
-  background: var(--color-high);
+  background: var(--color-precip-high-bg);
+  color: var(--color-precip-high-fg);
 }
 
 .precip-unknown {
   background: var(--color-unknown);
+  color: white;
 }
 
 .precip-pop {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
   font-size: 1.25rem;
   font-weight: 600;
   line-height: 1;
 }
 
+.precip-droplet {
+  width: 0.95em;
+  height: 0.95em;
+  flex-shrink: 0;
+}
+
 .precip-inches {
   font-size: 0.75rem;
-  opacity: 0.9;
+  opacity: 0.85;
   margin-top: 0.25rem;
 }
