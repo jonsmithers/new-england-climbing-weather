@@ -88,7 +88,7 @@ export function LocationCard({ location, weekend, refreshNonce }: Props) {
         </a>
         <a
           className="forecast-link"
-          href={buildMeteoblueUrl(location)}
+          href={buildMeteoblueUrl(location, weekend)}
           target="_blank"
           rel="noopener noreferrer"
         >
@@ -99,8 +99,18 @@ export function LocationCard({ location, weekend, refreshNonce }: Props) {
   );
 }
 
-function buildMeteoblueUrl(location: Location): string {
-  return `https://www.meteoblue.com/en/weather/forecast/week/${location.lat}N${location.lon}E`;
+// meteoblue's weekly forecast supports ?day=N to expand a specific day's
+// detail panel. N is 1-indexed from today (today=1, tomorrow=2, ...).
+function buildMeteoblueUrl(location: Location, weekend: Weekend): string {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const saturday = new Date(weekend.saturday);
+  saturday.setHours(0, 0, 0, 0);
+  const daysFromToday = Math.round(
+    (saturday.getTime() - today.getTime()) / 86_400_000,
+  );
+  const day = Math.max(1, Math.min(7, daysFromToday + 1));
+  return `https://www.meteoblue.com/en/weather/forecast/week/${location.lat}N${location.lon}E?day=${day}`;
 }
 
 // Builds a forecast.weather.gov graphical hourly forecast URL pointed at
