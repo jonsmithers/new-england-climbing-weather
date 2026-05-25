@@ -10,14 +10,18 @@ import {
 } from '../lib/forecast';
 import './SummitPanel.css';
 
-type Props = { summit: NonNullable<Location['summit']>; weekend: Weekend };
+type Props = {
+  summit: NonNullable<Location['summit']>;
+  weekend: Weekend;
+  refreshNonce: number;
+};
 
 type PanelState =
   | { status: 'loading' }
   | { status: 'ok'; data: WeekendForecast }
   | { status: 'error'; message: string };
 
-export function SummitPanel({ summit, weekend }: Props) {
+export function SummitPanel({ summit, weekend, refreshNonce }: Props) {
   const [state, setState] = useState<PanelState>({ status: 'loading' });
 
   useEffect(() => {
@@ -44,6 +48,7 @@ export function SummitPanel({ summit, weekend }: Props) {
     summit.lon,
     summit.elevationMeters,
     weekend.saturday.getTime(),
+    refreshNonce,
   ]);
 
   const feet = Math.round(summit.elevationMeters * 3.28084);

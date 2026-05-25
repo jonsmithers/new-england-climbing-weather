@@ -12,14 +12,14 @@ import { TempChart } from './TempChart';
 import { SummitPanel } from './SummitPanel';
 import './LocationCard.css';
 
-type Props = { location: Location; weekend: Weekend };
+type Props = { location: Location; weekend: Weekend; refreshNonce: number };
 
 type CardState =
   | { status: 'loading' }
   | { status: 'ok'; data: WeekendForecast }
   | { status: 'error'; message: string };
 
-export function LocationCard({ location, weekend }: Props) {
+export function LocationCard({ location, weekend, refreshNonce }: Props) {
   const [state, setState] = useState<CardState>({ status: 'loading' });
 
   useEffect(() => {
@@ -41,7 +41,7 @@ export function LocationCard({ location, weekend }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [location.lat, location.lon, weekend.saturday.getTime()]);
+  }, [location.lat, location.lon, weekend.saturday.getTime(), refreshNonce]);
 
   return (
     <article className="location-card">
@@ -63,7 +63,11 @@ export function LocationCard({ location, weekend }: Props) {
         </>
       )}
       {location.summit && (
-        <SummitPanel summit={location.summit} weekend={weekend} />
+        <SummitPanel
+          summit={location.summit}
+          weekend={weekend}
+          refreshNonce={refreshNonce}
+        />
       )}
       <a
         className="forecast-link"

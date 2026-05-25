@@ -1,0 +1,23 @@
+.refresh-footer {
+  margin-top: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  font-size: 0.9rem;
+  color: var(--color-muted);
+}
+
+.refresh-button {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  color: inherit;
+  padding: 0.4rem 0.9rem;
+  font: inherit;
+  cursor: pointer;
+}
+
+.refresh-button:hover {
+  border-color: var(--color-muted);
+}
