@@ -8,6 +8,7 @@ export type DaySummary = {
   low: number | null;
   popMax: number | null;
   precipInches: number;
+  precipMmByHour: number[];
 };
 
 export type WeekendForecast = {
@@ -37,16 +38,17 @@ function summarizeDay(forecast: NwsForecast, day: Date): DaySummary {
     .filter((v): v is number => v !== null);
   const popMax = pops.length ? Math.max(...pops) : null;
 
-  const dayStart = new Date(day);
-  const dayEnd = new Date(day);
-  dayEnd.setDate(dayEnd.getDate() + 1);
-  const mm = forecast.precipMm
-    .filter((b) => {
-      const s = new Date(b.startIso);
-      const e = new Date(b.endIso);
-      return s < dayEnd && e > dayStart;
-    })
-    .reduce((sum, b) => sum + b.mm, 0);
+  const dayStart = new Date(day).getTime();
+  const dayEnd = dayStart + 24 * 3_600_000;
+  const precipMmByHour = new Array<number>(24).fill(0);
+  let mm = 0;
+  for (const r of forecast.precipMm) {
+    const t = new Date(r.hourIso).getTime();
+    if (t < dayStart || t >= dayEnd) continue;
+    const hour = Math.floor((t - dayStart) / 3_600_000);
+    precipMmByHour[hour] += r.mm;
+    mm += r.mm;
+  }
 
   return {
     date: day,
@@ -54,6 +56,7 @@ function summarizeDay(forecast: NwsForecast, day: Date): DaySummary {
     low: nightPeriod?.temperature ?? null,
     popMax,
     precipInches: mm / 25.4,
+    precipMmByHour,
   };
 }
 
@@ -73,7 +76,14 @@ function summarizeSummitDay(
 ): DaySummary {
   const idx = forecast.daily.time.indexOf(formatYmd(day));
   if (idx === -1) {
-    return { date: day, high: null, low: null, popMax: null, precipInches: 0 };
+    return {
+      date: day,
+      high: null,
+      low: null,
+      popMax: null,
+      precipInches: 0,
+      precipMmByHour: new Array<number>(24).fill(0),
+    };
   }
   return {
     date: day,
@@ -81,5 +91,6 @@ function summarizeSummitDay(
     low: forecast.daily.temperature_2m_min[idx] ?? null,
     popMax: forecast.daily.precipitation_probability_max[idx] ?? null,
     precipInches: forecast.daily.precipitation_sum[idx] ?? 0,
+    precipMmByHour: new Array<number>(24).fill(0),
   };
 }

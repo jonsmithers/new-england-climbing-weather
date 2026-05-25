@@ -53,8 +53,16 @@ export function LocationCard({ location, weekend, refreshNonce }: Props) {
       {state.status === 'ok' && (
         <>
           <div className="day-row">
-            <DayBlock label="Sat" day={state.data.saturday} />
-            <DayBlock label="Sun" day={state.data.sunday} />
+            <DayBlock
+              label="Sat"
+              day={state.data.saturday}
+              maxHourMm={maxHourMm(state.data)}
+            />
+            <DayBlock
+              label="Sun"
+              day={state.data.sunday}
+              maxHourMm={maxHourMm(state.data)}
+            />
           </div>
           <TempChart
             saturday={state.data.saturday}
@@ -152,11 +160,35 @@ function buildForecastUrl(location: Location, weekend: Weekend): string {
   return `https://forecast.weather.gov/MapClick.php?${params.toString()}`;
 }
 
-function DayBlock({ label, day }: { label: string; day: DaySummary }) {
+function DayBlock({
+  label,
+  day,
+  maxHourMm,
+}: {
+  label: string;
+  day: DaySummary;
+  maxHourMm: number;
+}) {
   return (
     <div className="day">
       <div className="day-label">{label}</div>
-      <PrecipBadge popMax={day.popMax} precipInches={day.precipInches} />
+      <PrecipBadge
+        popMax={day.popMax}
+        precipInches={day.precipInches}
+        precipMmByHour={day.precipMmByHour}
+        maxHourMm={maxHourMm}
+      />
     </div>
   );
+}
+
+function maxHourMm(forecast: WeekendForecast): number {
+  let max = 0;
+  for (const v of forecast.saturday.precipMmByHour) {
+    max = Math.max(max, v);
+  }
+  for (const v of forecast.sunday.precipMmByHour) {
+    max = Math.max(max, v);
+  }
+  return max;
 }

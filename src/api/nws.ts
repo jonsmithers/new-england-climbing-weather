@@ -10,15 +10,14 @@ export type ForecastPeriod = {
   probabilityOfPrecipitation: { value: number | null };
 };
 
-export type PrecipBucket = {
-  startIso: string;
-  endIso: string;
+export type HourPrecip = {
+  hourIso: string;
   mm: number;
 };
 
 export type NwsForecast = {
   periods: ForecastPeriod[];
-  precipMm: PrecipBucket[];
+  precipMm: HourPrecip[];
 };
 
 type GeoJson = {
@@ -38,7 +37,7 @@ export async function fetchNwsForecast(
   lat: number,
   lon: number,
 ): Promise<NwsForecast> {
-  const key = `nws:${lat.toFixed(4)},${lon.toFixed(4)}`;
+  const key = `nws-v2:${lat.toFixed(4)},${lon.toFixed(4)}`;
   const cached = readCache<NwsForecast>(key);
   if (cached) return cached;
 
@@ -69,23 +68,27 @@ async function getJson(url: string): Promise<GeoJson> {
   return r.json() as Promise<GeoJson>;
 }
 
+// Expands NWS QPF entries — which may be PT1H, PT6H, etc. — into a flat
+// hourly list. A 6mm/PT6H entry becomes six 1mm hourly readings.
 function parsePrecip(
   qpf: GeoJson['properties']['quantitativePrecipitation'],
-): PrecipBucket[] {
+): HourPrecip[] {
   if (!qpf?.values) return [];
-  const buckets: PrecipBucket[] = [];
+  const out: HourPrecip[] = [];
   for (const v of qpf.values) {
     if (v.value == null) continue;
     const [startStr, durationStr] = v.validTime.split('/');
-    const start = new Date(startStr);
-    const end = new Date(start.getTime() + parseIsoDurationMs(durationStr));
-    buckets.push({
-      startIso: start.toISOString(),
-      endIso: end.toISOString(),
-      mm: v.value,
-    });
+    const startMs = new Date(startStr).getTime();
+    const hours = Math.max(1, Math.round(parseIsoDurationMs(durationStr) / 3_600_000));
+    const mmPerHour = v.value / hours;
+    for (let i = 0; i < hours; i++) {
+      out.push({
+        hourIso: new Date(startMs + i * 3_600_000).toISOString(),
+        mm: mmPerHour,
+      });
+    }
   }
-  return buckets;
+  return out;
 }
 
 function parseIsoDurationMs(s: string): number {

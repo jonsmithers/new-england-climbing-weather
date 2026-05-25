@@ -1,18 +1,59 @@
 import './PrecipBadge.css';
 
-type Props = { popMax: number | null; precipInches: number };
+type Props = {
+  popMax: number | null;
+  precipInches: number;
+  precipMmByHour: number[];
+  maxHourMm: number;
+};
 
-export function PrecipBadge({ popMax, precipInches }: Props) {
+export function PrecipBadge({
+  popMax,
+  precipInches,
+  precipMmByHour,
+  maxHourMm,
+}: Props) {
   const level = bucketize(popMax);
   const popStr = popMax === null ? '—' : `${Math.round(popMax)}%`;
   return (
     <div className={`precip-badge precip-${level}`}>
-      <div className="precip-pop">
-        <DropletIcon />
-        <span>{popStr}</span>
+      <PrecipChart hourly={precipMmByHour} maxMm={maxHourMm} />
+      <div className="precip-content">
+        <div className="precip-pop">
+          <DropletIcon />
+          <span>{popStr}</span>
+        </div>
+        <div className="precip-inches">{precipInches.toFixed(2)}″</div>
       </div>
-      <div className="precip-inches">{precipInches.toFixed(2)}″</div>
     </div>
+  );
+}
+
+function PrecipChart({ hourly, maxMm }: { hourly: number[]; maxMm: number }) {
+  if (maxMm <= 0) return null;
+  return (
+    <svg
+      className="precip-chart"
+      viewBox="0 0 24 1"
+      preserveAspectRatio="none"
+      aria-hidden="true"
+      focusable="false"
+    >
+      {hourly.map((mm, hour) => {
+        if (mm <= 0) return null;
+        const h = Math.max(0.05, mm / maxMm);
+        return (
+          <rect
+            key={hour}
+            x={hour}
+            y={1 - h}
+            width={1}
+            height={h}
+            fill="currentColor"
+          />
+        );
+      })}
+    </svg>
   );
 }
 
