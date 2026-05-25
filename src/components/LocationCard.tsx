@@ -110,7 +110,7 @@ function buildMeteoblueUrl(location: Location, weekend: Weekend): string {
     (saturday.getTime() - today.getTime()) / 86_400_000,
   );
   const day = Math.max(1, Math.min(7, daysFromToday + 1));
-  return `https://www.meteoblue.com/en/weather/forecast/week/${location.lat}N${location.lon}E?day=${day}`;
+  return `https://www.meteoblue.com/en/weather/week/${location.lat}N${location.lon}E?day=${day}`;
 }
 
 // Builds a forecast.weather.gov graphical hourly forecast URL pointed at
