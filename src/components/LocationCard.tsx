@@ -69,16 +69,30 @@ export function LocationCard({ location, weekend, refreshNonce }: Props) {
           refreshNonce={refreshNonce}
         />
       )}
-      <a
-        className="forecast-link"
-        href={buildForecastUrl(location, weekend)}
-        target="_blank"
-        rel="noopener noreferrer"
-      >
-        Full forecast →
-      </a>
+      <div className="forecast-links">
+        <a
+          className="forecast-link"
+          href={buildForecastUrl(location, weekend)}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          weather.gov →
+        </a>
+        <a
+          className="forecast-link"
+          href={buildMeteoblueUrl(location)}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          meteoblue →
+        </a>
+      </div>
     </article>
   );
+}
+
+function buildMeteoblueUrl(location: Location): string {
+  return `https://www.meteoblue.com/en/weather/forecast/week/${location.lat}N${location.lon}E`;
 }
 
 // Builds a forecast.weather.gov graphical hourly forecast URL pointed at

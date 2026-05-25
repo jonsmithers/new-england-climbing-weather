@@ -8,13 +8,17 @@
   flex-direction: column;
 }
 
-.forecast-link {
+.forecast-links {
   margin-top: auto;
   padding-top: 0.75rem;
+  display: flex;
+  gap: 1rem;
+}
+
+.forecast-link {
   font-size: 0.85rem;
   color: var(--color-muted);
   text-decoration: none;
-  align-self: flex-start;
 }
 
 .forecast-link:hover {
