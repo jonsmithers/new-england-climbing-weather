@@ -16,15 +16,15 @@ export function PrecipBadge({
   const level = bucketize(popMax);
   const popStr = popMax === null ? '—' : `${Math.round(popMax)}%`;
   return (
-    <div className={`precip-badge precip-${level}`}>
-      <PrecipChart hourly={precipMmByHour} maxMm={maxHourMm} />
-      <div className="precip-content">
+    <div className={`precip-wrap precip-${level}`}>
+      <div className="precip-badge">
         <div className="precip-pop">
           <DropletIcon />
           <span>{popStr}</span>
         </div>
         <div className="precip-inches">{precipInches.toFixed(2)}″</div>
       </div>
+      <PrecipChart hourly={precipMmByHour} maxMm={maxHourMm} />
     </div>
   );
 }
@@ -49,7 +49,7 @@ function PrecipChart({ hourly, maxMm }: { hourly: number[]; maxMm: number }) {
             y={1 - h}
             width={1}
             height={h}
-            fill="currentColor"
+            fill="var(--precip-bar-color)"
           />
         );
       })}

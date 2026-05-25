@@ -1,42 +1,49 @@
+.precip-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.25rem;
+}
+
 .precip-badge {
-  position: relative;
-  overflow: hidden;
   border-radius: 8px;
   padding: 0.5rem 0.25rem;
   text-align: center;
+  background: var(--precip-bg);
+  color: var(--precip-fg);
+}
+
+.precip-wrap.precip-low {
+  --precip-bg: var(--color-precip-low-bg);
+  --precip-fg: var(--color-precip-low-fg);
+  --precip-bar-color: var(--color-precip-low-bg);
+}
+
+.precip-wrap.precip-med {
+  --precip-bg: var(--color-precip-med-bg);
+  --precip-fg: var(--color-precip-med-fg);
+  --precip-bar-color: var(--color-precip-med-bg);
+}
+
+.precip-wrap.precip-high {
+  --precip-bg: var(--color-precip-high-bg);
+  --precip-fg: var(--color-precip-high-fg);
+  --precip-bar-color: var(--color-precip-high-bg);
+}
+
+.precip-wrap.precip-unknown {
+  --precip-bg: var(--color-unknown);
+  --precip-fg: white;
+  --precip-bar-color: var(--color-unknown);
 }
 
 .precip-chart {
-  position: absolute;
-  inset: 0;
+  display: block;
   width: 100%;
-  height: 100%;
-  opacity: 0.22;
-  pointer-events: none;
-}
-
-.precip-content {
-  position: relative;
-}
-
-.precip-low {
-  background: var(--color-precip-low-bg);
-  color: var(--color-precip-low-fg);
-}
-
-.precip-med {
-  background: var(--color-precip-med-bg);
-  color: var(--color-precip-med-fg);
-}
-
-.precip-high {
-  background: var(--color-precip-high-bg);
-  color: var(--color-precip-high-fg);
-}
-
-.precip-unknown {
-  background: var(--color-unknown);
-  color: white;
+  height: 1.5rem;
+  border: 1px solid var(--precip-bar-color);
+  border-radius: 4px;
+  box-sizing: border-box;
 }
 
 .precip-pop {
