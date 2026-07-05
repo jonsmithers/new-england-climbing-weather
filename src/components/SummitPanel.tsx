@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Collapsible } from '@base-ui/react/collapsible';
 import type { Location } from '../locations';
-import type { Weekend } from '../lib/weekend';
+import { type Weekend, dayLabel } from '../lib/weekend';
 import { fetchOpenMeteo } from '../api/openMeteo';
 import {
   summarizeSummitWeekend,
@@ -73,8 +73,13 @@ export function SummitPanel({ summit, weekend, refreshNonce }: Props) {
         )}
         {state.status === 'ok' && (
           <div className="summit-days">
-            <SummitDay label="Sat" day={state.data.saturday} />
-            <SummitDay label="Sun" day={state.data.sunday} />
+            {state.data.days.map((day) => (
+              <SummitDay
+                key={day.date.getTime()}
+                label={dayLabel(day.date)}
+                day={day}
+              />
+            ))}
           </div>
         )}
       </Collapsible.Panel>

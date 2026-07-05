@@ -12,8 +12,7 @@ export type DaySummary = {
 };
 
 export type WeekendForecast = {
-  saturday: DaySummary;
-  sunday: DaySummary;
+  days: DaySummary[];
 };
 
 export function summarizeWeekend(
@@ -21,8 +20,7 @@ export function summarizeWeekend(
   weekend: Weekend,
 ): WeekendForecast {
   return {
-    saturday: summarizeDay(forecast, weekend.saturday),
-    sunday: summarizeDay(forecast, weekend.sunday),
+    days: weekend.days.map((day) => summarizeDay(forecast, day)),
   };
 }
 
@@ -65,8 +63,7 @@ export function summarizeSummitWeekend(
   weekend: Weekend,
 ): WeekendForecast {
   return {
-    saturday: summarizeSummitDay(forecast, weekend.saturday),
-    sunday: summarizeSummitDay(forecast, weekend.sunday),
+    days: weekend.days.map((day) => summarizeSummitDay(forecast, day)),
   };
 }
 

@@ -1,4 +1,7 @@
-export type Weekend = { saturday: Date; sunday: Date };
+// `days` are the forecast days shown per crag, in display order:
+// Friday, Saturday, Sunday, Monday. `saturday` is kept as the anchor the
+// external forecast links and effect/cache keys pivot on.
+export type Weekend = { saturday: Date; days: Date[] };
 
 export function nextWeekend(now: Date = new Date()): Weekend {
   return weekendAt(0, now);
@@ -8,17 +11,19 @@ export function weekendAt(offset: number, now: Date = new Date()): Weekend {
   const dow = now.getDay();
   const daysUntilSat = dow === 6 ? 0 : (6 - dow + 7) % 7;
   const saturday = startOfDay(addDays(now, daysUntilSat + offset * 7));
-  const sunday = startOfDay(addDays(saturday, 1));
-  return { saturday, sunday };
+  const days = [-1, 0, 1, 2].map((d) => startOfDay(addDays(saturday, d)));
+  return { saturday, days };
 }
 
 export function formatRange(w: Weekend): string {
-  const sameMonth = w.saturday.getMonth() === w.sunday.getMonth();
-  const m = w.saturday.getMonth() + 1;
+  const first = w.days[0];
+  const last = w.days[w.days.length - 1];
+  const sameMonth = first.getMonth() === last.getMonth();
+  const m = first.getMonth() + 1;
   if (sameMonth) {
-    return `${m}/${w.saturday.getDate()}–${w.sunday.getDate()}`;
+    return `${m}/${first.getDate()}–${last.getDate()}`;
   }
-  return `${m}/${w.saturday.getDate()}–${w.sunday.getMonth() + 1}/${w.sunday.getDate()}`;
+  return `${m}/${first.getDate()}–${last.getMonth() + 1}/${last.getDate()}`;
 }
 
 export function isSameDay(a: Date, b: Date): boolean {
@@ -29,9 +34,12 @@ export function isSameDay(a: Date, b: Date): boolean {
   );
 }
 
+export function dayLabel(d: Date): string {
+  return ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][d.getDay()];
+}
+
 export function formatShort(d: Date): string {
-  const dows = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-  return `${dows[d.getDay()]} ${d.getMonth() + 1}/${d.getDate()}`;
+  return `${dayLabel(d)} ${d.getMonth() + 1}/${d.getDate()}`;
 }
 
 export function formatYmd(d: Date): string {

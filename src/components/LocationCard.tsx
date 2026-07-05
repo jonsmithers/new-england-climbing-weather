@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { Location } from '../locations';
-import type { Weekend } from '../lib/weekend';
+import { type Weekend, dayLabel } from '../lib/weekend';
 import { fetchNwsForecast } from '../api/nws';
 import {
   summarizeWeekend,
@@ -53,21 +53,16 @@ export function LocationCard({ location, weekend, refreshNonce }: Props) {
       {state.status === 'ok' && (
         <>
           <div className="day-row">
-            <DayBlock
-              label="Sat"
-              day={state.data.saturday}
-              maxHourMm={maxHourMm(state.data)}
-            />
-            <DayBlock
-              label="Sun"
-              day={state.data.sunday}
-              maxHourMm={maxHourMm(state.data)}
-            />
+            {state.data.days.map((day) => (
+              <DayBlock
+                key={day.date.getTime()}
+                label={dayLabel(day.date)}
+                day={day}
+                maxHourMm={maxHourMm(state.data)}
+              />
+            ))}
           </div>
-          <TempChart
-            saturday={state.data.saturday}
-            sunday={state.data.sunday}
-          />
+          <TempChart days={state.data.days} />
         </>
       )}
       {location.summit && (
@@ -194,11 +189,10 @@ function DayBlock({
 
 function maxHourMm(forecast: WeekendForecast): number {
   let max = 0;
-  for (const v of forecast.saturday.precipMmByHour) {
-    max = Math.max(max, v);
-  }
-  for (const v of forecast.sunday.precipMmByHour) {
-    max = Math.max(max, v);
+  for (const day of forecast.days) {
+    for (const v of day.precipMmByHour) {
+      max = Math.max(max, v);
+    }
   }
   return max;
 }

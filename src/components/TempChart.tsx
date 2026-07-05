@@ -1,15 +1,11 @@
 import type { DaySummary } from '../lib/forecast';
 import './TempChart.css';
 
-type Props = { saturday: DaySummary; sunday: DaySummary };
+type Props = { days: DaySummary[] };
 
-export function TempChart({ saturday, sunday }: Props) {
-  const days = [
-    { label: 'Sat', day: saturday },
-    { label: 'Sun', day: sunday },
-  ];
+export function TempChart({ days }: Props) {
   const temps = days
-    .flatMap(({ day }) => [day.high, day.low])
+    .flatMap((day) => [day.high, day.low])
     .filter((v): v is number => v !== null);
   if (temps.length === 0) return null;
 
@@ -31,9 +27,9 @@ export function TempChart({ saturday, sunday }: Props) {
       className="temp-chart"
       viewBox={`0 0 ${width} ${height}`}
       role="img"
-      aria-label="High and low temperatures for Saturday and Sunday"
+      aria-label="High and low temperatures for each forecast day"
     >
-      {days.map(({ day }, i) => {
+      {days.map((day, i) => {
         const cx = colWidth * (i + 0.5);
         if (day.high == null || day.low == null) return null;
         const yHigh = y(day.high);
