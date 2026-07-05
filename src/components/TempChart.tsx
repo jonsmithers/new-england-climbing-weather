@@ -1,5 +1,4 @@
 import type { DaySummary } from '../lib/forecast';
-import { dayLabel } from '../lib/weekend';
 import './TempChart.css';
 
 type Props = { days: DaySummary[] };
@@ -15,9 +14,9 @@ export function TempChart({ days }: Props) {
   const range = max - min || 1;
 
   const width = 200;
-  const height = 92;
+  const height = 80;
   const padTop = 14;
-  const padBottom = 26; // room for the day-label row along the bottom
+  const padBottom = 14;
   const innerH = height - padTop - padBottom;
   const colWidth = width / days.length;
 
@@ -84,14 +83,6 @@ export function TempChart({ days }: Props) {
                 —
               </text>
             )}
-            <text
-              x={cx}
-              y={height - 8}
-              className="temp-day-label"
-              textAnchor="middle"
-            >
-              {dayLabel(day.date)}
-            </text>
           </g>
         );
       })}

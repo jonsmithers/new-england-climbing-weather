@@ -27,9 +27,3 @@
 .temp-empty {
   fill: var(--color-muted);
 }
-
-.temp-day-label {
-  font-size: 9px;
-  fill: var(--color-muted);
-  font-family: var(--font);
-}
