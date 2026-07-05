@@ -19,7 +19,7 @@ A static, single-page React app (React 19 + Vite + TypeScript) that shows a week
 
 Two weather sources, kept visually and structurally separate so "base of crag" numbers are never confused with "summit" numbers:
 
-- **NWS (`api.weather.gov`)** — `src/api/nws.ts` — the authoritative crag (base) forecast. Sequence: `GET /points/{lat},{lon}` → yields a `forecast` URL plus grid coords → then in parallel `GET <forecast>` (day/night periods: temp, isDaytime, PoP) and `GET /gridpoints/{gridId}/{x},{y}` (quantitative precipitation / QPF, in mm). `parsePrecip` expands multi-hour QPF entries (PT6H etc.) into flat per-hour readings.
+- **NWS (`api.weather.gov`)** — `src/api/nws.ts` — the authoritative crag (base) forecast. Two-step fetch: `/points` yields a forecast URL + grid coords, then the day/night periods and the gridpoint QPF are fetched in parallel (`parsePrecip` flattens multi-hour QPF into per-hour readings). See ARCHITECTURE.md for the full request sequence.
 - **Open-Meteo** — `src/api/openMeteo.ts` — summit panel only, and only for locations with a `summit` configured. Its `elevation` param gives summit-ish conditions without scraping. Returns daily min/max temp, PoP, precip sum (requested directly in °F / inches).
 
 Data flow: `LOCATIONS` (`src/locations.ts`) → `App` renders one `LocationCard` per crag → each card independently fetches NWS and owns its own `loading | ok | error` state (one bad fetch never breaks the page). `SummitPanel` does the same against Open-Meteo when `location.summit` is set. Raw API responses are normalized into a shared `WeekendForecast` / `DaySummary[]` shape by `src/lib/forecast.ts` (`summarizeWeekend` for NWS, `summarizeSummitWeekend` for Open-Meteo).
