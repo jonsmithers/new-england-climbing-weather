@@ -32,7 +32,7 @@ Despite the name, a `Weekend` covers **four days — Fri, Sat, Sun, Mon** (`days
 
 Per-location responses are cached in `sessionStorage` with a 30-minute TTL (honors NWS's recommended cache window). Each API module (`nws.ts`, `openMeteo.ts`) has its **own private `readCache`/`writeCache`** — the logic is duplicated, not shared. `src/lib/cache.ts` provides cross-cutting helpers (`clearForecastCache`, `getOldestCacheAgeMs`) used by the `RefreshFooter`; it matches entries by key **prefix**.
 
-⚠️ **Cache key prefixes must stay in sync across three files.** `cache.ts` matches `['nws:', 'om:']`, `openMeteo.ts` writes `om:…`, but `nws.ts` currently writes `nws-v2:…` — so the global clear/age helpers do **not** match NWS entries. If you touch any cache key, reconcile all three.
+⚠️ **Cache key prefixes must stay in sync across three files.** `cache.ts` matches `['nws:', 'om:']`, `openMeteo.ts` writes `om:…`, and `nws.ts` writes `nws:…`. If you touch any cache key, reconcile all three or the global clear/age helpers will silently stop matching those entries.
 
 ## Common changes
 

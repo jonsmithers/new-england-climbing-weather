@@ -37,7 +37,7 @@ export async function fetchNwsForecast(
   lat: number,
   lon: number,
 ): Promise<NwsForecast> {
-  const key = `nws-v2:${lat.toFixed(4)},${lon.toFixed(4)}`;
+  const key = `nws:${lat.toFixed(4)},${lon.toFixed(4)}`;
   const cached = readCache<NwsForecast>(key);
   if (cached) return cached;
 
