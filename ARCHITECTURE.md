@@ -4,12 +4,14 @@ A simple webapp that shows weekend weather forecasts for a curated set of New En
 
 ## Goals
 
-Highlight four data points per crag, with the upcoming Saturday and Sunday in focus:
+Highlight four data points per crag, across the upcoming Fri–Mon window:
 
 1. Chance of rain
 2. Forecasted precipitation (inches)
-3. High/low temperature for Sat and Sun (with a small chart)
+3. High/low temperature for each of Fri, Sat, Sun, Mon (with a small chart)
 4. Summit forecast — only for locations where a nearby summit is configured
+
+The window is four days (Fri–Mon), with Saturday as the anchor day. See `src/lib/weekend.ts`.
 
 ## Stack
 
@@ -44,9 +46,10 @@ All requests fan out in parallel per render. Each card owns its own loading and 
 
 ### NWS request sequence
 
-1. `GET /points/{lat},{lon}` — returns metadata including a `forecast` URL and a `forecastHourly` URL
-2. `GET <forecast>` — returns ~14 periods (7 days × day/night) with `temperature`, `isDaytime`, `probabilityOfPrecipitation`
-3. `GET <forecastHourly>` — hourly periods with `quantitativePrecipitation` (used to sum inches across Sat + Sun)
+1. `GET /points/{lat},{lon}` — returns metadata including a `forecast` URL plus the grid coords (`gridId`, `gridX`, `gridY`)
+2. Then, in parallel:
+   - `GET <forecast>` — returns ~14 periods (7 days × day/night) with `temperature`, `isDaytime`, `probabilityOfPrecipitation`
+   - `GET /gridpoints/{gridId}/{x},{y}` — quantitative precipitation (QPF) in mm. `parsePrecip` expands multi-hour QPF entries (PT1H, PT6H, …) into flat per-hour readings, which are then summed per day.
 
 ### Open-Meteo request (summit only)
 
@@ -59,18 +62,18 @@ All requests fan out in parallel per render. Each card owns its own loading and 
 
 | Data point | Source | Field(s) |
 |---|---|---|
-| Chance of rain | NWS forecast period | `probabilityOfPrecipitation.value` |
-| Inches of precipitation | NWS hourly forecast | sum of `quantitativePrecipitation` over Sat + Sun hours |
-| Hi/Lo for Sat & Sun | NWS forecast periods | filter periods where `startTime` ∈ {Sat, Sun}; `temperature` + `isDaytime` |
+| Chance of rain | NWS forecast period | `probabilityOfPrecipitation.value` (max per day) |
+| Inches of precipitation | NWS `gridpoints` QPF | sum of per-hour `quantitativePrecipitation` (mm → inches) within each day |
+| Hi/Lo per day | NWS forecast periods | filter periods to each day (Fri–Mon); daytime `temperature` = high, nighttime = low |
 | Summit forecast | Open-Meteo | `daily.temperature_2m_max/min`, `precipitation_probability_max`, `precipitation_sum` |
 
 ## Card layout
 
 Top to bottom:
 
-1. Crag name + subtitle (e.g., `Sat 5/23 – Sun 5/24`)
+1. Crag name + subtitle (the Fri–Mon date range, e.g. `5/23–5/26`)
 2. **Big precip badge** — color-coded: green <20%, amber 20–50%, red >50%. Inches underneath.
-3. **Inline temp chart** — 4 points (Sat hi, Sat lo, Sun hi, Sun lo), hand-rolled SVG, no chart library.
+3. **Inline temp chart** — hi/lo for each of the four days (Fri–Mon), each column labeled with its day, hand-rolled SVG, no chart library.
 4. **Summit panel** — collapsed by default, only renders when `summit` is configured.
 
 ## Caching
