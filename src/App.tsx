@@ -14,7 +14,7 @@ export function App() {
   return (
     <div className="app">
       <header className="app-header">
-        <h1>Northeast Climbing Weather</h1>
+        <h1>New England Climbing Weather</h1>
         <WeekendPicker offset={offset} onOffsetChange={setOffset} />
       </header>
       <main className="grid">

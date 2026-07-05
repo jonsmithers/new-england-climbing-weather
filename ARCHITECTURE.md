@@ -1,6 +1,6 @@
 # Architecture
 
-A simple webapp that shows weekend weather forecasts for a curated set of northeast US rock climbing destinations, so the community can decide trip plans a few days out at a glance.
+A simple webapp that shows weekend weather forecasts for a curated set of New England rock climbing destinations, so the community can decide trip plans a few days out at a glance.
 
 ## Goals
 
