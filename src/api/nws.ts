@@ -1,3 +1,5 @@
+import { CACHE_PREFIX } from '../lib/cache';
+
 const CACHE_TTL_MS = 30 * 60 * 1000;
 const BASE = 'https://api.weather.gov';
 
@@ -37,7 +39,7 @@ export async function fetchNwsForecast(
   lat: number,
   lon: number,
 ): Promise<NwsForecast> {
-  const key = `nws:${lat.toFixed(4)},${lon.toFixed(4)}`;
+  const key = `${CACHE_PREFIX.nws}${lat.toFixed(4)},${lon.toFixed(4)}`;
   const cached = readCache<NwsForecast>(key);
   if (cached) return cached;
 

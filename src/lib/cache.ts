@@ -1,5 +1,11 @@
-// Keep in sync with the prefixes used by api/nws.ts and api/openMeteo.ts.
-const CACHE_PREFIXES = ['nws:', 'om:'];
+// Single source of truth for cache-key prefixes. The API modules build their
+// keys from these, and the helpers below match on them, so the two cannot drift.
+export const CACHE_PREFIX = {
+  nws: 'nws:',
+  om: 'om:',
+} as const;
+
+const CACHE_PREFIXES = Object.values(CACHE_PREFIX);
 
 export function getOldestCacheAgeMs(): number | null {
   let oldest: number | null = null;

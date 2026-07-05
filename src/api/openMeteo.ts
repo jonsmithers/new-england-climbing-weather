@@ -1,3 +1,5 @@
+import { CACHE_PREFIX } from '../lib/cache';
+
 const CACHE_TTL_MS = 30 * 60 * 1000;
 const BASE = 'https://api.open-meteo.com/v1/forecast';
 
@@ -19,7 +21,7 @@ export async function fetchOpenMeteo(
   lon: number,
   elevationMeters: number,
 ): Promise<OpenMeteoForecast> {
-  const key = `om:${lat.toFixed(4)},${lon.toFixed(4)},${elevationMeters}`;
+  const key = `${CACHE_PREFIX.om}${lat.toFixed(4)},${lon.toFixed(4)},${elevationMeters}`;
   const cached = readCache<OpenMeteoForecast>(key);
   if (cached) return cached;
 
