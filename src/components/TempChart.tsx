@@ -1,4 +1,5 @@
 import type { DaySummary } from '../lib/forecast';
+import { dayLabel } from '../lib/weekend';
 import './TempChart.css';
 
 type Props = { days: DaySummary[] };
@@ -14,9 +15,9 @@ export function TempChart({ days }: Props) {
   const range = max - min || 1;
 
   const width = 200;
-  const height = 80;
+  const height = 92;
   const padTop = 14;
-  const padBottom = 14;
+  const padBottom = 26; // room for the day-label row along the bottom
   const innerH = height - padTop - padBottom;
   const colWidth = width / days.length;
 
@@ -31,35 +32,65 @@ export function TempChart({ days }: Props) {
     >
       {days.map((day, i) => {
         const cx = colWidth * (i + 0.5);
-        if (day.high == null || day.low == null) return null;
-        const yHigh = y(day.high);
-        const yLow = y(day.low);
+        const hasData = day.high != null && day.low != null;
         return (
           <g key={i}>
-            <line
-              x1={cx}
-              x2={cx}
-              y1={yHigh}
-              y2={yLow}
-              className="temp-line"
-            />
-            <circle cx={cx} cy={yHigh} r={3.5} className="temp-dot-high" />
-            <circle cx={cx} cy={yLow} r={3.5} className="temp-dot-low" />
+            {hasData ? (
+              <>
+                <line
+                  x1={cx}
+                  x2={cx}
+                  y1={y(day.high!)}
+                  y2={y(day.low!)}
+                  className="temp-line"
+                />
+                <circle
+                  cx={cx}
+                  cy={y(day.high!)}
+                  r={3.5}
+                  className="temp-dot-high"
+                />
+                <circle
+                  cx={cx}
+                  cy={y(day.low!)}
+                  r={3.5}
+                  className="temp-dot-low"
+                />
+                <text
+                  x={cx}
+                  y={y(day.high!) - 5}
+                  className="temp-label"
+                  textAnchor="middle"
+                >
+                  {Math.round(day.high!)}°
+                </text>
+                <text
+                  x={cx}
+                  y={y(day.low!) + 12}
+                  className="temp-label"
+                  textAnchor="middle"
+                >
+                  {Math.round(day.low!)}°
+                </text>
+              </>
+            ) : (
+              <text
+                x={cx}
+                y={padTop + innerH / 2}
+                className="temp-label temp-empty"
+                textAnchor="middle"
+                dominantBaseline="middle"
+              >
+                —
+              </text>
+            )}
             <text
               x={cx}
-              y={yHigh - 5}
-              className="temp-label"
+              y={height - 8}
+              className="temp-day-label"
               textAnchor="middle"
             >
-              {Math.round(day.high)}°
-            </text>
-            <text
-              x={cx}
-              y={yLow + 12}
-              className="temp-label"
-              textAnchor="middle"
-            >
-              {Math.round(day.low)}°
+              {dayLabel(day.date)}
             </text>
           </g>
         );
