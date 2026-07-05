@@ -1,4 +1,4 @@
-import { CACHE_PREFIX } from '../lib/cache';
+import { CACHE_PREFIX, notifyCacheUpdated } from '../lib/cache';
 
 const CACHE_TTL_MS = 30 * 60 * 1000;
 const BASE = 'https://api.weather.gov';
@@ -117,6 +117,7 @@ function readCache<T>(key: string): T | null {
 function writeCache<T>(key: string, value: T): void {
   try {
     sessionStorage.setItem(key, JSON.stringify({ ts: Date.now(), value }));
+    notifyCacheUpdated();
   } catch {
     // sessionStorage may be unavailable or full; non-fatal
   }

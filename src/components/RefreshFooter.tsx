@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { getOldestCacheAgeMs } from '../lib/cache';
+import { useCallback, useEffect, useState } from 'react';
+import { getOldestCacheAgeMs, subscribeToCacheUpdated } from '../lib/cache';
 import './RefreshFooter.css';
 
 type Props = { onRefresh: () => void };
@@ -7,12 +7,18 @@ type Props = { onRefresh: () => void };
 export function RefreshFooter({ onRefresh }: Props) {
   const [ageMs, setAgeMs] = useState<number | null>(() => getOldestCacheAgeMs());
 
+  const tick = useCallback(() => setAgeMs(getOldestCacheAgeMs()), []);
+
+  // Keep the "N min old" label aging over time.
   useEffect(() => {
-    const tick = () => setAgeMs(getOldestCacheAgeMs());
     tick();
     const id = window.setInterval(tick, 15_000);
     return () => window.clearInterval(id);
-  }, []);
+  }, [tick]);
+
+  // Update the instant a card writes its fetch to cache, so we flip off "no
+  // cached data" immediately instead of waiting up to a full interval.
+  useEffect(() => subscribeToCacheUpdated(tick), [tick]);
 
   return (
     <footer className="refresh-footer">

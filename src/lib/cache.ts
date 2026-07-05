@@ -25,6 +25,21 @@ export function getOldestCacheAgeMs(): number | null {
   return oldest == null ? null : Date.now() - oldest;
 }
 
+// Fired whenever a cache entry is written or cleared, so UI that reflects cache
+// age (the RefreshFooter) can update the instant fetches land instead of waiting
+// for its next poll. sessionStorage's native `storage` event only fires in other
+// tabs, so we dispatch our own for same-document listeners.
+const CACHE_UPDATED_EVENT = 'forecast-cache-updated';
+
+export function notifyCacheUpdated(): void {
+  window.dispatchEvent(new Event(CACHE_UPDATED_EVENT));
+}
+
+export function subscribeToCacheUpdated(listener: () => void): () => void {
+  window.addEventListener(CACHE_UPDATED_EVENT, listener);
+  return () => window.removeEventListener(CACHE_UPDATED_EVENT, listener);
+}
+
 export function clearForecastCache(): void {
   const toRemove: string[] = [];
   for (let i = 0; i < sessionStorage.length; i++) {
@@ -32,4 +47,5 @@ export function clearForecastCache(): void {
     if (key && CACHE_PREFIXES.some((p) => key.startsWith(p))) toRemove.push(key);
   }
   for (const key of toRemove) sessionStorage.removeItem(key);
+  notifyCacheUpdated();
 }
