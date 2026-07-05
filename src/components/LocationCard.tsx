@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
+import { Tooltip } from '@base-ui/react/tooltip';
 import type { Location } from '../locations';
 import { type Weekend, dayLabel } from '../lib/weekend';
 import { fetchNwsForecast } from '../api/nws';
 import {
   summarizeWeekend,
+  rainScore,
   type DaySummary,
   type WeekendForecast,
 } from '../lib/forecast';
@@ -12,15 +14,32 @@ import { TempChart } from './TempChart';
 import { SummitPanel } from './SummitPanel';
 import './LocationCard.css';
 
-type Props = { location: Location; weekend: Weekend; refreshNonce: number };
+type Props = {
+  location: Location;
+  weekend: Weekend;
+  refreshNonce: number;
+  // Reports this crag's rain-viability score (lower = drier) so App can sort
+  // cards. null while loading or on error, so those sort to the bottom.
+  onScore: (id: string, score: number | null) => void;
+};
 
 type CardState =
   | { status: 'loading' }
   | { status: 'ok'; data: WeekendForecast }
   | { status: 'error'; message: string };
 
-export function LocationCard({ location, weekend, refreshNonce }: Props) {
+export function LocationCard({
+  location,
+  weekend,
+  refreshNonce,
+  onScore,
+}: Props) {
   const [state, setState] = useState<CardState>({ status: 'loading' });
+  const score = state.status === 'ok' ? rainScore(state.data) : null;
+
+  useEffect(() => {
+    onScore(location.id, score);
+  }, [score, location.id, onScore]);
 
   useEffect(() => {
     let cancelled = false;
@@ -89,8 +108,37 @@ export function LocationCard({ location, weekend, refreshNonce }: Props) {
         >
           meteoblue →
         </a>
+        <CardInfo score={score} />
       </div>
     </article>
+  );
+}
+
+// Bottom-right "info" icon that reveals extra per-card details on hover/focus.
+// For now the only detail is the rain-viability score used to order the cards.
+function CardInfo({ score }: { score: number | null }) {
+  return (
+    <Tooltip.Root>
+      <Tooltip.Trigger className="card-info-trigger" aria-label="Card details">
+        <svg viewBox="0 0 16 16" width="15" height="15" aria-hidden>
+          <circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" />
+          <circle cx="8" cy="4.5" r="1" fill="currentColor" stroke="none" />
+          <rect x="7.25" y="6.75" width="1.5" height="5" fill="currentColor" stroke="none" />
+        </svg>
+      </Tooltip.Trigger>
+      <Tooltip.Portal>
+        <Tooltip.Positioner side="top" align="end" sideOffset={6}>
+          <Tooltip.Popup className="card-info-popup">
+            <div className="card-info-row">
+              <span className="card-info-label">Rain score</span>
+              <span className="card-info-value">
+                {score == null ? '—' : score.toFixed(1)}
+              </span>
+            </div>
+          </Tooltip.Popup>
+        </Tooltip.Positioner>
+      </Tooltip.Portal>
+    </Tooltip.Root>
   );
 }
 

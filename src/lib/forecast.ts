@@ -15,6 +15,21 @@ export type WeekendForecast = {
   days: DaySummary[];
 };
 
+// Lower is drier and therefore more viable for climbing. Rain amount
+// dominates (0.1" ≈ 1 point) with probability-of-precip as a lighter tiebreak
+// (100% PoP ≈ 1 point). Saturday and Sunday are weighted 3× vs. Fri/Mon since
+// those are the days most people actually get out.
+export function rainScore(forecast: WeekendForecast): number {
+  let score = 0;
+  for (const day of forecast.days) {
+    const dow = day.date.getDay();
+    const weight = dow === 0 || dow === 6 ? 3 : 1;
+    const badness = day.precipInches * 10 + (day.popMax ?? 0) / 100;
+    score += weight * badness;
+  }
+  return score;
+}
+
 export function summarizeWeekend(
   forecast: NwsForecast,
   weekend: Weekend,
