@@ -30,9 +30,7 @@ Despite the name, a `Weekend` covers **four days — Fri, Sat, Sun, Mon** (`days
 
 ### Caching
 
-Per-location responses are cached in `sessionStorage` with a 30-minute TTL (honors NWS's recommended cache window). Each API module (`nws.ts`, `openMeteo.ts`) has its **own private `readCache`/`writeCache`** — the logic is duplicated, not shared. `src/lib/cache.ts` provides cross-cutting helpers (`clearForecastCache`, `getOldestCacheAgeMs`) used by the `RefreshFooter`; it matches entries by key **prefix**.
-
-Cache key prefixes have a single source of truth: `CACHE_PREFIX` in `src/lib/cache.ts`. The API modules build their keys from it (`CACHE_PREFIX.nws`, `CACHE_PREFIX.om`) and the clear/age helpers derive their match list from the same object (`Object.values`), so a new prefix only needs to be added in one place.
+Per-location responses are cached in `sessionStorage` with a 30-minute TTL (honors NWS's recommended cache window). Each API module (`nws.ts`, `openMeteo.ts`) has its **own private `readCache`/`writeCache`** — the logic is duplicated, not shared. `src/lib/cache.ts` provides cross-cutting helpers (`clearForecastCache`, `getOldestCacheAgeMs`) used by the `RefreshFooter`; it matches entries by key **prefix**, and exports `CACHE_PREFIX` as the single source of truth for those prefixes.
 
 ## Common changes
 
