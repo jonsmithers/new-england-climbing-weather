@@ -2,7 +2,7 @@ import './PrecipBadge.css';
 
 type Props = {
   popMax: number | null;
-  precipInches: number;
+  precipInches: number | null;
   precipMmByHour: number[];
   maxHourMm: number;
 };
@@ -22,7 +22,9 @@ export function PrecipBadge({
           <DropletIcon />
           <span>{popStr}</span>
         </div>
-        <div className="precip-inches">{precipInches.toFixed(2)}″</div>
+        <div className="precip-inches">
+          {precipInches === null ? '—' : `${precipInches.toFixed(2)}″`}
+        </div>
       </div>
       <PrecipChart hourly={precipMmByHour} maxMm={maxHourMm} />
     </div>

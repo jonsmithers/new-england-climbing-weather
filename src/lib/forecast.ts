@@ -7,7 +7,9 @@ export type DaySummary = {
   high: number | null;
   low: number | null;
   popMax: number | null;
-  precipInches: number;
+  // null when the source returned no precip data for this day (distinct from a
+  // dry-but-forecasted 0).
+  precipInches: number | null;
   precipMmByHour: number[];
 };
 
@@ -24,7 +26,7 @@ export function rainScore(forecast: WeekendForecast): number {
   for (const day of forecast.days) {
     const dow = day.date.getDay();
     const weight = dow === 0 || dow === 6 ? 3 : 1;
-    const badness = day.precipInches * 10 + (day.popMax ?? 0) / 100;
+    const badness = (day.precipInches ?? 0) * 10 + (day.popMax ?? 0) / 100;
     score += weight * badness;
   }
   return score;
@@ -55,12 +57,14 @@ function summarizeDay(forecast: NwsForecast, day: Date): DaySummary {
   const dayEnd = dayStart + 24 * 3_600_000;
   const precipMmByHour = new Array<number>(24).fill(0);
   let mm = 0;
+  let hasPrecipData = false;
   for (const r of forecast.precipMm) {
     const t = new Date(r.hourIso).getTime();
     if (t < dayStart || t >= dayEnd) continue;
     const hour = Math.floor((t - dayStart) / 3_600_000);
     precipMmByHour[hour] += r.mm;
     mm += r.mm;
+    hasPrecipData = true;
   }
 
   return {
@@ -68,7 +72,7 @@ function summarizeDay(forecast: NwsForecast, day: Date): DaySummary {
     high: dayPeriod?.temperature ?? null,
     low: nightPeriod?.temperature ?? null,
     popMax,
-    precipInches: mm / 25.4,
+    precipInches: hasPrecipData ? mm / 25.4 : null,
     precipMmByHour,
   };
 }
@@ -93,7 +97,7 @@ function summarizeSummitDay(
       high: null,
       low: null,
       popMax: null,
-      precipInches: 0,
+      precipInches: null,
       precipMmByHour: new Array<number>(24).fill(0),
     };
   }
@@ -102,7 +106,7 @@ function summarizeSummitDay(
     high: forecast.daily.temperature_2m_max[idx] ?? null,
     low: forecast.daily.temperature_2m_min[idx] ?? null,
     popMax: forecast.daily.precipitation_probability_max[idx] ?? null,
-    precipInches: forecast.daily.precipitation_sum[idx] ?? 0,
+    precipInches: forecast.daily.precipitation_sum[idx] ?? null,
     precipMmByHour: new Array<number>(24).fill(0),
   };
 }

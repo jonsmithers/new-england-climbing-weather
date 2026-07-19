@@ -98,7 +98,9 @@ function SummitDay({ label, day }: { label: string; day: DaySummary }) {
         {hi} / {lo}
       </span>
       <span className="summit-day-pop">{pop}</span>
-      <span className="summit-day-precip">{day.precipInches.toFixed(2)}″</span>
+      <span className="summit-day-precip">
+        {day.precipInches === null ? '—' : `${day.precipInches.toFixed(2)}″`}
+      </span>
     </div>
   );
 }
