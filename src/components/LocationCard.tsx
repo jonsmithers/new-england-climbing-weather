@@ -3,12 +3,14 @@ import { Tooltip } from '@base-ui/react/tooltip';
 import type { Location } from '../locations';
 import { type Weekend, dayLabel, formatMonthDay } from '../lib/weekend';
 import {
+  COMFORT_BAND_F,
   dayCondition,
   weekendVerdict,
   type DaySummary,
+  type Viability,
 } from '../lib/forecast';
 import type { ForecastState } from '../hooks/useCragForecasts';
-import { formatPrecip, usePrecipUnit } from '../lib/units';
+import { formatPrecip, formatTemp, usePrecipUnit, useTempUnit } from '../lib/units';
 import type { Drive } from '../api/routing';
 import { formatDriveDistance, formatDriveTime } from '../lib/drive';
 import { WeatherIcon, iconFor } from './WeatherIcon';
@@ -22,9 +24,9 @@ type Props = {
   location: Location;
   weekend: Weekend;
   state: ForecastState | undefined;
-  // 1-based position in the driest-first ordering; null until scored.
+  // 1-based position in the viability ordering; null until scored.
   rank: number | null;
-  score: number | null;
+  score: Viability | null;
   // Drive from the user's origin; undefined while loading or if routing failed.
   drive?: Drive | null;
   refreshNonce: number;
@@ -74,7 +76,7 @@ export function LocationCard({
           ) : null}
         </div>
         {rank != null && (
-          <span className={`rank${rank === 1 ? ' rank-first' : ''}`} title="Driest-first rank">
+          <span className={`rank${rank === 1 ? ' rank-first' : ''}`} title="Rank by climbing viability">
             {rank === 1 ? 'Best bet' : `#${rank}`}
           </span>
         )}
@@ -124,7 +126,7 @@ export function LocationCard({
         >
           meteoblue <ExternalIcon />
         </a>
-        <CardInfo score={score} />
+        <CardInfo score={score} hasDrive={drive != null} />
       </footer>
     </article>
   );
@@ -209,9 +211,19 @@ function ExternalIcon() {
   );
 }
 
-// Bottom-right "info" icon that reveals extra per-card details on hover/focus.
-// For now the only detail is the rain-viability score used to order the cards.
-function CardInfo({ score }: { score: number | null }) {
+// Bottom-right "info" icon that reveals extra per-card details on hover/focus:
+// the per-factor breakdown of the viability score used to order the cards.
+function CardInfo({ score, hasDrive }: { score: Viability | null; hasDrive: boolean }) {
+  const [unit] = useTempUnit();
+  const band = `${formatTemp(COMFORT_BAND_F.low, unit)}–${formatTemp(COMFORT_BAND_F.high, unit, { withUnit: true })}`;
+  const rows: [label: string, value: number | null][] = score
+    ? [
+        ['Rain', score.rain],
+        ['Wet rock (prior-day rain)', score.wetRock],
+        [`Temp (highs outside ${band})`, score.temp],
+        ['Drive (beyond 1 h)', hasDrive ? score.drive : null],
+      ]
+    : [];
   return (
     <Tooltip.Root>
       <Tooltip.Trigger delay={150} className="card-info-trigger" aria-label="Card details">
@@ -224,13 +236,23 @@ function CardInfo({ score }: { score: number | null }) {
       <Tooltip.Portal>
         <Tooltip.Positioner side="top" align="end" sideOffset={6}>
           <Tooltip.Popup className="tooltip-popup">
-            <div className="card-info-row">
-              <span className="card-info-label">Rain score</span>
+            {rows.map(([label, value]) => (
+              <div key={label} className="card-info-row">
+                <span className="card-info-label">{label}</span>
+                <span className="card-info-value">
+                  {value == null ? '—' : value.toFixed(1)}
+                </span>
+              </div>
+            ))}
+            <div className="card-info-row card-info-total">
+              <span className="card-info-label">Viability score</span>
               <span className="card-info-value">
-                {score == null ? '—' : score.toFixed(1)}
+                {score == null ? '—' : score.total.toFixed(1)}
               </span>
             </div>
-            <div className="card-info-hint">Lower is drier. Sat/Sun count triple.</div>
+            <div className="card-info-hint">
+              Penalty points: lower is better. Sat/Sun count triple.
+            </div>
           </Tooltip.Popup>
         </Tooltip.Positioner>
       </Tooltip.Portal>

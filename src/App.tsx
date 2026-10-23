@@ -12,7 +12,7 @@ import { useDriveTimes } from './hooks/useDriveTimes';
 import { usePreference } from './lib/preferences';
 import { ORIGIN } from './lib/origin';
 import { weekendAt } from './lib/weekend';
-import { rainScore } from './lib/forecast';
+import { viabilityScore } from './lib/forecast';
 import { clearForecastCache } from './lib/cache';
 import './App.css';
 
@@ -24,15 +24,19 @@ export function App() {
   const [origin] = usePreference(ORIGIN);
   const drives = useDriveTimes(LOCATIONS, origin);
 
-  // Sort driest-first by rain score. Crags not yet scored (loading/error) fall
-  // to the bottom; Array.sort is stable so ties keep LOCATIONS order.
+  // Sort best-first by viability score (rain, prior-day rain, temperature,
+  // drive time). Crags not yet scored (loading/error) fall to the bottom;
+  // Array.sort is stable so ties keep LOCATIONS order.
   const ranked = useMemo(() => {
     const rows = LOCATIONS.map((location) => {
       const state = states[location.id];
-      const score = state?.status === 'ok' ? rainScore(state.data) : null;
-      return { location, state, score, drive: drives[location.id] };
+      const drive = drives[location.id];
+      const score = state?.status === 'ok' ? viabilityScore(state.data, drive?.seconds) : null;
+      return { location, state, score, drive };
     });
-    return rows.sort((a, b) => (a.score ?? Infinity) - (b.score ?? Infinity));
+    return rows.sort(
+      (a, b) => (a.score?.total ?? Infinity) - (b.score?.total ?? Infinity),
+    );
   }, [states, drives]);
 
   return (
@@ -63,7 +67,7 @@ export function App() {
             </span>
           </h1>
           <p className="hero-sub">
-            Friday–Monday forecasts for {LOCATIONS.length} crags, sorted driest first.
+            Friday–Monday forecasts for {LOCATIONS.length} crags, best conditions first.
           </p>
           <WeekendPicker offset={offset} onOffsetChange={setOffset} />
         </div>

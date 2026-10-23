@@ -28,7 +28,7 @@ Drive times (separate from the weather data):
 - **Photon (`photon.komoot.io`)**: `src/api/geocode.ts`, the place search in `OriginPicker`. It searches **on submit only**, never per keystroke (fair-use policy).
 - The origin is the `ORIGIN` preference in `src/lib/origin.ts` (default: Davis Square, Somerville). Attribution for OSRM/OSM is required and lives in the `RefreshFooter` credits.
 
-Data flow: `LOCATIONS` (`src/locations.ts`) → `useCragForecasts` (`src/hooks/`, called from `App`) fetches NWS for every crag in parallel and keeps a separate `loading | ok | error` state for each crag (one bad fetch never breaks the page) → `App` ranks crags driest-first by `rainScore` and passes them to `Overview` (best-bet spotlight + heatmap) and to one `LocationCard` per crag. `SummitPanel` fetches Open-Meteo itself when `location.summit` is set. Raw API responses are normalized into a shared `WeekendForecast` / `DaySummary[]` shape by `src/lib/forecast.ts` (`summarizeWeekend` for NWS, `summarizeSummitWeekend` for Open-Meteo).
+Data flow: `LOCATIONS` (`src/locations.ts`) → `useCragForecasts` (`src/hooks/`, called from `App`) fetches NWS for every crag in parallel and keeps a separate `loading | ok | error` state for each crag (one bad fetch never breaks the page) → `App` ranks crags best-first by `viabilityScore` (penalty points, lower is better: rain, prior-day "wet rock", temperature outside a comfort band, and drive time beyond an hour; formula in ARCHITECTURE.md) and passes them to `Overview` (best-bet spotlight + heatmap) and to one `LocationCard` per crag. `SummitPanel` fetches Open-Meteo itself when `location.summit` is set. Raw API responses are normalized into a shared `WeekendForecast` / `DaySummary[]` shape by `src/lib/forecast.ts` (`summarizeWeekend` for NWS, `summarizeSummitWeekend` for Open-Meteo).
 
 ### The "weekend" concept (`src/lib/weekend.ts`)
 
@@ -51,6 +51,7 @@ Internal data is always °F and inches. The °F/°C and in/mm header toggles (`s
 ## Common changes
 
 - **Add/remove a crag:** edit `LOCATIONS` in `src/locations.ts`. Each crag needs a `region` (state abbreviation). Add an optional `summit: { lat, lon, elevationMeters, name? }` to enable the summit panel for that crag.
+- **Tune the ranking:** the weights are named constants above `viabilityScore` in `src/lib/forecast.ts`. Keep the table in ARCHITECTURE.md's "Viability score" section and the `CardInfo` breakdown labels in `LocationCard.tsx` in sync with them.
 - **External forecast links** (`weather.gov` graphical hourly + `meteoblue`) are built in `LocationCard.tsx` (`buildForecastUrl`, `buildMeteoblueUrl`) — both have detailed comments on their URL params; keep those comments accurate if you change the query strings.
 
 ## Note on docs

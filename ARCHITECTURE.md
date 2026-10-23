@@ -78,17 +78,30 @@ All requests fan out in parallel per render. `useCragForecasts` gives each crag 
 Top to bottom:
 
 1. **Header** — scenic hero (layered ridge silhouettes), weekend picker, an origin picker for drive times (search a place, pick a result; default Davis Square, Somerville), °F/°C and in/mm unit toggles, and a light / system / dark theme toggle.
-2. **Overview** — a "best bet" spotlight for the driest crag, next to a crag × day heatmap (chance of rain, tinted by dry / damp / wet). Rows link to the matching card.
-3. **Cards**, sorted driest-first by `rainScore`.
+2. **Overview** — a "best bet" spotlight for the top-ranked crag, next to a crag × day heatmap (chance of rain, tinted by dry / damp / wet). Rows link to the matching card.
+3. **Cards**, sorted best-first by `viabilityScore` (see below).
 
 ### Card layout
 
-1. Crag name, state, approximate drive time + distance from the origin (hidden if routing failed), a verdict pill ("3 of 4 days dry"), and its driest-first rank.
+1. Crag name, state, approximate drive time + distance from the origin (hidden if routing failed), a verdict pill ("3 of 4 days dry"), and its viability rank. The info icon in the card footer shows the score's per-factor breakdown.
 2. **Day tiles** (Fri–Mon) — weather icon from NWS `shortForecast`, max chance of rain, inches. Tinted by `dayCondition`: dry / damp / wet. Hover or focus a tile for the forecast text and wind.
 3. **Hourly precip strip** — one 96-hour timeline whose bars sit under each day's tile. Absolute sqrt scale (not per-card), so bar heights compare across crags.
 4. **Temp band chart** — smooth hi/lo curves on the same 4-column grid, hand-rolled SVG, no chart library.
 5. **Summit panel** — collapsed by default, only renders when `summit` is configured.
 6. Footer links to weather.gov (48-hour hourly graph starting 8am Saturday) and meteoblue (week view, Saturday's tab open). Both use the crag's base coordinates; weather.gov's graph can't reach past ~4 days out, so further weekends clamp to its last window. Param details live next to the URL builders in `LocationCard.tsx`.
+
+## Viability score
+
+`viabilityScore` (`src/lib/forecast.ts`) ranks the crags. It's in penalty points, so **lower is better**, and 0 means a dry weekend with highs in the comfort band at a crag within an hour's drive. Each day gets a weight *w* of 3 for Sat/Sun and 1 for Fri/Mon.
+
+| Factor | Points | Notes |
+|---|---|---|
+| Rain | Σ *w* · (inches × 10 + PoP/100) | Dominant. 0.1″ ≈ 1 point, 100% PoP ≈ 1 point. |
+| Wet rock | Σ *w* · 0.2 × (previous day's rain points) | Fri→Sat, Sat→Sun, Sun→Mon. Friday has no term because Thursday isn't summarized. |
+| Temperature | Σ *w* · (0.05/°F below a 45°F high, 0.025/°F above a 75°F high) | Scored in °F whatever the display unit. A missing high counts 0. |
+| Drive | 0.4 × (hours − 1), floored at 0, once per trip | Counts 0 when the drive time is unknown (routing loading or failed), so an outage leaves the weather-only order intact. |
+
+For scale: a dry weekend with 30°F highs is 6.0 points, light showers on Saturday only (0.05″, 40%) are 2.7 + 0.5 wet rock, and the Gunks' 4½-hour drive from Boston is 1.4. The weights are named constants at the top of the scoring code.
 
 ## Theming
 
@@ -96,7 +109,7 @@ All colors are CSS custom properties defined once in `src/styles.css` as `light-
 
 ## Units and preferences
 
-Both APIs are asked for °F and inches (NWS QPF arrives in mm and is converted to inches on ingest), and everything internal (`DaySummary`, `rainScore`) stays in those units. The °F/°C and in/mm toggles are display-only: `src/lib/units.ts` (`formatTemp`, `formatPrecip`) converts at render time, so scoring and caching never depend on the user's choice. TempChart lays out its curve in °F and converts only the labels, so the shape is identical in either unit. Defaults are °F and inches.
+Both APIs are asked for °F and inches (NWS QPF arrives in mm and is converted to inches on ingest), and everything internal (`DaySummary`, `viabilityScore`) stays in those units. The °F/°C and in/mm toggles are display-only: `src/lib/units.ts` (`formatTemp`, `formatPrecip`) converts at render time, so scoring and caching never depend on the user's choice. TempChart lays out its curve in °F and converts only the labels, so the shape is identical in either unit. Defaults are °F and inches.
 
 User preferences live in `localStorage` through `src/lib/preferences.ts`: a typed store (`definePreference` + `usePreference`) that validates stored JSON, falls back to the default on garbage or blocked storage, and syncs every subscriber in the tab and across tabs. Reads are synchronous, so the first render already uses the saved units (no inline pre-paint script needed, unlike the theme). The theme keeps its own older `theme` key because `index.html` reads it before first paint.
 

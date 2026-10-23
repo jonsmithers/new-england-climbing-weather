@@ -13,7 +13,7 @@ export type OverviewRow = {
 };
 
 type Props = {
-  // Already sorted driest-first.
+  // Already sorted best-first by viability score.
   rows: OverviewRow[];
   weekend: Weekend;
 };
