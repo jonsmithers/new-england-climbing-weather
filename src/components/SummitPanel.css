@@ -1,90 +1,130 @@
-.summit-root {
-  margin-top: 0.75rem;
-  border-top: 1px solid var(--color-border);
-  padding-top: 0.5rem;
+.summit {
+  border-radius: var(--radius);
+  background: var(--surface-sunken);
+  border: 1px solid var(--border);
 }
 
 .summit-trigger {
   appearance: none;
-  background: none;
-  border: 0;
-  padding: 0.25rem 0;
   width: 100%;
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: var(--color-text);
+  padding: 0.55rem 0.75rem;
+  background: none;
+  border: 0;
+  border-radius: var(--radius);
+  color: var(--text);
   cursor: pointer;
-  font: inherit;
   text-align: left;
 }
 
-.summit-trigger:hover .summit-title {
-  color: var(--color-text);
+.summit-trigger:hover {
+  background: var(--surface-hover);
 }
 
-.summit-chevron {
-  display: inline-block;
-  font-size: 0.7rem;
-  color: var(--color-muted);
-  transition: transform 120ms ease;
-}
-
-.summit-trigger[data-panel-open] .summit-chevron {
-  transform: rotate(90deg);
+.summit-icon {
+  color: var(--text-muted);
+  flex-shrink: 0;
 }
 
 .summit-title {
+  display: flex;
+  align-items: baseline;
+  gap: 0.45rem;
   font-size: 0.85rem;
-  color: var(--color-muted);
+  font-weight: 600;
 }
 
 .summit-elev {
-  color: var(--color-muted);
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--text-muted);
   font-variant-numeric: tabular-nums;
 }
 
+.summit-source {
+  margin-left: auto;
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+  color: var(--text-faint);
+}
+
+.summit-chevron {
+  color: var(--text-muted);
+  transition: transform 200ms var(--ease-out);
+}
+
+.summit-trigger[data-panel-open] .summit-chevron {
+  transform: rotate(180deg);
+}
+
 .summit-panel {
+  height: var(--collapsible-panel-height);
   overflow: hidden;
-  padding-top: 0.4rem;
+  transition: height 240ms var(--ease-out);
 }
 
-.summit-status {
-  margin: 0.25rem 0 0;
-  font-size: 0.8rem;
-  color: var(--color-muted);
+.summit-panel[data-starting-style],
+.summit-panel[data-ending-style] {
+  height: 0;
 }
 
-.summit-error {
-  color: var(--color-high);
+.summit-content {
+  padding: 0.15rem 0.5rem 0.6rem;
 }
 
 .summit-days {
-  display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.4rem;
 }
 
 .summit-day {
-  display: grid;
-  grid-template-columns: 2rem 1fr auto auto;
-  gap: 0.5rem;
-  align-items: baseline;
-  font-size: 0.8rem;
-  color: var(--color-muted);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  font-size: 0.75rem;
   font-variant-numeric: tabular-nums;
 }
 
 .summit-day-label {
-  color: var(--color-text);
+  font-size: 0.66rem;
   font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
 }
 
 .summit-day-temps {
-  color: var(--color-text);
+  display: flex;
+  gap: 0.3rem;
+  font-family: var(--font-display);
+  font-size: 0.85rem;
 }
 
-.summit-day-pop,
+.summit-hi {
+  font-weight: 600;
+}
+
+.summit-lo {
+  color: var(--text-muted);
+}
+
 .summit-day-precip {
-  text-align: right;
+  color: var(--text-muted);
+  font-size: 0.68rem;
+}
+
+.summit-skeleton {
+  height: 4.6rem;
+  border-radius: var(--radius-sm);
+}
+
+.summit-error {
+  margin: 0.25rem 0.25rem 0;
+  font-size: 0.78rem;
+  color: var(--wet);
+  word-break: break-word;
 }

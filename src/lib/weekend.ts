@@ -38,8 +38,12 @@ export function dayLabel(d: Date): string {
   return ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][d.getDay()];
 }
 
+export function formatMonthDay(d: Date): string {
+  return `${d.getMonth() + 1}/${d.getDate()}`;
+}
+
 export function formatShort(d: Date): string {
-  return `${dayLabel(d)} ${d.getMonth() + 1}/${d.getDate()}`;
+  return `${dayLabel(d)} ${formatMonthDay(d)}`;
 }
 
 export function formatYmd(d: Date): string {

@@ -11,7 +11,44 @@ export type DaySummary = {
   // dry-but-forecasted 0).
   precipInches: number | null;
   precipMmByHour: number[];
+  // NWS short forecast text ("Mostly Sunny", "Chance Rain Showers") and wind
+  // range ("5 to 10 mph"), preferring the daytime period. null for Open-Meteo.
+  conditions: string | null;
+  wind: string | null;
 };
+
+// Coarse climbability bucket for a single day. Thresholds favor caution: a
+// modest chance of showers is enough to call a day "damp".
+export type DayCondition = 'dry' | 'damp' | 'wet' | 'unknown';
+
+export function dayCondition(day: DaySummary): DayCondition {
+  if (day.popMax == null && day.precipInches == null) return 'unknown';
+  const pop = day.popMax ?? 0;
+  const inches = day.precipInches ?? 0;
+  if (inches >= 0.1 || pop >= 60) return 'wet';
+  if (inches >= 0.02 || pop >= 30) return 'damp';
+  return 'dry';
+}
+
+export type Verdict = {
+  level: Exclude<DayCondition, 'unknown'>;
+  label: string;
+  dryDays: number;
+};
+
+// One-line summary of the whole window, driven by how many days are dry.
+export function weekendVerdict(forecast: WeekendForecast): Verdict {
+  const total = forecast.days.length;
+  const dryDays = forecast.days.filter((d) => dayCondition(d) === 'dry').length;
+  const level = dryDays >= total - 1 ? 'dry' : dryDays >= total / 2 ? 'damp' : 'wet';
+  const label =
+    dryDays === total
+      ? 'Dry all weekend'
+      : dryDays === 0
+        ? 'No dry days'
+        : `${dryDays} of ${total} days dry`;
+  return { level, label, dryDays };
+}
 
 export type WeekendForecast = {
   days: DaySummary[];
@@ -74,6 +111,8 @@ function summarizeDay(forecast: NwsForecast, day: Date): DaySummary {
     popMax,
     precipInches: hasPrecipData ? mm / 25.4 : null,
     precipMmByHour,
+    conditions: (dayPeriod ?? nightPeriod)?.shortForecast ?? null,
+    wind: (dayPeriod ?? nightPeriod)?.windSpeed ?? null,
   };
 }
 
@@ -99,6 +138,8 @@ function summarizeSummitDay(
       popMax: null,
       precipInches: null,
       precipMmByHour: new Array<number>(24).fill(0),
+      conditions: null,
+      wind: null,
     };
   }
   return {
@@ -108,5 +149,7 @@ function summarizeSummitDay(
     popMax: forecast.daily.precipitation_probability_max[idx] ?? null,
     precipInches: forecast.daily.precipitation_sum[idx] ?? null,
     precipMmByHour: new Array<number>(24).fill(0),
+    conditions: null,
+    wind: null,
   };
 }

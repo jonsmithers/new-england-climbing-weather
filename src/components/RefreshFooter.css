@@ -1,23 +1,82 @@
 .refresh-footer {
-  margin-top: 1.5rem;
+  margin-top: 2.5rem;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
+  gap: 0.85rem;
+}
+
+.refresh-pill {
+  display: inline-flex;
+  align-items: center;
   gap: 0.75rem;
-  font-size: 0.9rem;
-  color: var(--color-muted);
+  padding: 4px 4px 4px 1rem;
+  border-radius: 999px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-lg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.refresh-age {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.refresh-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--dry);
+  box-shadow: 0 0 0 3px var(--dry-bg);
+}
+
+.refresh-dot[data-stale] {
+  background: var(--damp);
+  box-shadow: 0 0 0 3px var(--damp-bg);
 }
 
 .refresh-button {
-  background: var(--color-card);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  color: inherit;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
   padding: 0.4rem 0.9rem;
-  font: inherit;
+  border: 0;
+  border-radius: 999px;
+  background: var(--text);
+  color: var(--bg);
+  font-size: 0.82rem;
+  font-weight: 600;
   cursor: pointer;
+  transition: opacity 140ms ease;
 }
 
 .refresh-button:hover {
-  border-color: var(--color-muted);
+  opacity: 0.85;
+}
+
+.refresh-button[data-spinning] svg {
+  animation: refresh-spin 700ms var(--ease-out);
+}
+
+@keyframes refresh-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.refresh-credits {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--text-faint);
+  text-align: center;
+}
+
+.refresh-credits a {
+  color: var(--text-muted);
 }

@@ -17,7 +17,7 @@ The window is four days (Fri–Mon), with Saturday as the anchor day. See `src/l
 
 - **Frontend:** React + Vite (TypeScript)
 - **UI primitives:** [`@base-ui/react`](https://base-ui.com/) for unstyled, accessible components (e.g. the collapsible summit panel, any dialogs/tooltips/selects we add later)
-- **Styling:** Plain CSS — no Tailwind.
+- **Styling:** Plain CSS — no Tailwind. Fonts are Space Grotesk (display) and Inter, from Google Fonts.
 - **Hosting:** Static site on a free tier (GitHub Pages / Vercel / Netlify)
 - **Backend:** None. No database, no auth, no API keys, no scraping.
 
@@ -42,7 +42,7 @@ locations.ts ──► for each crag ──┬─► NWS:  /points/{lat,lon} →
                                      /v1/forecast?lat&lon&elevation&daily=...
 ```
 
-All requests fan out in parallel per render. Each card owns its own loading and error state, so one bad fetch doesn't break the page.
+All requests fan out in parallel per render. `useCragForecasts` gives each crag its own loading and error slot, so one bad fetch doesn't break the page.
 
 ### NWS request sequence
 
@@ -67,14 +67,26 @@ All requests fan out in parallel per render. Each card owns its own loading and 
 | Hi/Lo per day | NWS forecast periods | filter periods to each day (Fri–Mon); daytime `temperature` = high, nighttime = low |
 | Summit forecast | Open-Meteo | `daily.temperature_2m_max/min`, `precipitation_probability_max`, `precipitation_sum` |
 
-## Card layout
+## Page layout
 
 Top to bottom:
 
-1. Crag name + subtitle (the Fri–Mon date range, e.g. `5/23–5/26`)
-2. **Big precip badge** — color-coded: green <20%, amber 20–50%, red >50%. Inches underneath.
-3. **Inline temp chart** — hi/lo for each of the four days (Fri–Mon), each column labeled with its day, hand-rolled SVG, no chart library.
-4. **Summit panel** — collapsed by default, only renders when `summit` is configured.
+1. **Header** — scenic hero (layered ridge silhouettes), weekend picker, and a light / system / dark theme toggle.
+2. **Overview** — a "best bet" spotlight for the driest crag, next to a crag × day heatmap (chance of rain, tinted by dry / damp / wet). Rows link to the matching card.
+3. **Cards**, sorted driest-first by `rainScore`.
+
+### Card layout
+
+1. Crag name, state, a verdict pill ("3 of 4 days dry"), and its driest-first rank.
+2. **Day tiles** (Fri–Mon) — weather icon from NWS `shortForecast`, max chance of rain, inches. Tinted by `dayCondition`: dry / damp / wet. Hover or focus a tile for the forecast text and wind.
+3. **Hourly precip strip** — one 96-hour timeline whose bars sit under each day's tile. Absolute sqrt scale (not per-card), so bar heights compare across crags.
+4. **Temp band chart** — smooth hi/lo curves on the same 4-column grid, hand-rolled SVG, no chart library.
+5. **Summit panel** — collapsed by default, only renders when `summit` is configured.
+6. Footer links to weather.gov and meteoblue.
+
+## Theming
+
+All colors are CSS custom properties defined once in `src/styles.css` as `light-dark()` pairs. `color-scheme: light dark` follows the OS. The theme toggle pins one side by setting `data-theme` on `<html>` (saved in `localStorage`). An inline script in `index.html` applies the saved choice before first paint.
 
 ## Caching
 

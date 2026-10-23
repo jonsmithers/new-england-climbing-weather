@@ -1,15 +1,15 @@
-import { useEffect, useState } from 'react';
+import type { CSSProperties } from 'react';
 import { Tooltip } from '@base-ui/react/tooltip';
 import type { Location } from '../locations';
-import { type Weekend, dayLabel } from '../lib/weekend';
-import { fetchNwsForecast } from '../api/nws';
+import { type Weekend, dayLabel, formatMonthDay } from '../lib/weekend';
 import {
-  summarizeWeekend,
-  rainScore,
+  dayCondition,
+  weekendVerdict,
   type DaySummary,
-  type WeekendForecast,
 } from '../lib/forecast';
-import { PrecipBadge } from './PrecipBadge';
+import type { ForecastState } from '../hooks/useCragForecasts';
+import { WeatherIcon, iconFor } from './WeatherIcon';
+import { PrecipStrip } from './PrecipStrip';
 import { TempChart } from './TempChart';
 import { SummitPanel } from './SummitPanel';
 import './LocationCard.css';
@@ -17,73 +17,80 @@ import './LocationCard.css';
 type Props = {
   location: Location;
   weekend: Weekend;
+  state: ForecastState | undefined;
+  // 1-based position in the driest-first ordering; null until scored.
+  rank: number | null;
+  score: number | null;
   refreshNonce: number;
-  // Reports this crag's rain-viability score (lower = drier) so App can sort
-  // cards. null while loading or on error, so those sort to the bottom.
-  onScore: (id: string, score: number | null) => void;
+  // Position in the grid, used only to stagger the entrance animation.
+  index: number;
 };
 
-type CardState =
-  | { status: 'loading' }
-  | { status: 'ok'; data: WeekendForecast }
-  | { status: 'error'; message: string };
+const CONDITION_LABEL = {
+  dry: 'Likely dry',
+  damp: 'Possible showers',
+  wet: 'Likely wet',
+  unknown: 'No data',
+} as const;
 
 export function LocationCard({
   location,
   weekend,
+  state = { status: 'loading' },
+  rank,
+  score,
   refreshNonce,
-  onScore,
+  index,
 }: Props) {
-  const [state, setState] = useState<CardState>({ status: 'loading' });
-  const score = state.status === 'ok' ? rainScore(state.data) : null;
-
-  useEffect(() => {
-    onScore(location.id, score);
-  }, [score, location.id, onScore]);
-
-  useEffect(() => {
-    let cancelled = false;
-    setState({ status: 'loading' });
-    fetchNwsForecast(location.lat, location.lon)
-      .then((forecast) => {
-        if (cancelled) return;
-        setState({
-          status: 'ok',
-          data: summarizeWeekend(forecast, weekend),
-        });
-      })
-      .catch((err: unknown) => {
-        if (cancelled) return;
-        const message = err instanceof Error ? err.message : String(err);
-        setState({ status: 'error', message });
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [location.lat, location.lon, weekend.saturday.getTime(), refreshNonce]);
+  const verdict = state.status === 'ok' ? weekendVerdict(state.data) : null;
 
   return (
-    <article className="location-card">
-      <h2 className="location-name">{location.name}</h2>
-      {state.status === 'loading' && <p className="status">Loading…</p>}
+    <article
+      className="card"
+      id={`crag-${location.id}`}
+      style={{ '--i': index } as CSSProperties}
+    >
+      <header className="card-head">
+        <div className="card-heading">
+          <h2 className="card-name">
+            {location.name}
+            <span className="card-region">{location.region}</span>
+          </h2>
+          {verdict ? (
+            <span className={`verdict verdict-${verdict.level}`}>
+              <span className="verdict-dot" aria-hidden />
+              {verdict.label}
+            </span>
+          ) : state.status === 'loading' ? (
+            <span className="skeleton verdict-skeleton" />
+          ) : null}
+        </div>
+        {rank != null && (
+          <span className={`rank${rank === 1 ? ' rank-first' : ''}`} title="Driest-first rank">
+            {rank === 1 ? 'Best bet' : `#${rank}`}
+          </span>
+        )}
+      </header>
+
+      {state.status === 'loading' && <CardSkeleton />}
       {state.status === 'error' && (
-        <p className="status status-error">{state.message}</p>
+        <div className="card-error" role="alert">
+          <strong>Forecast unavailable</strong>
+          <span>{state.message}</span>
+        </div>
       )}
       {state.status === 'ok' && (
-        <>
-          <div className="day-row">
+        <div className="card-body">
+          <div className="day-grid">
             {state.data.days.map((day) => (
-              <DayBlock
-                key={day.date.getTime()}
-                label={dayLabel(day.date)}
-                day={day}
-                maxHourMm={maxHourMm(state.data)}
-              />
+              <DayCell key={day.date.getTime()} day={day} />
             ))}
           </div>
+          <PrecipStrip days={state.data.days} />
           <TempChart days={state.data.days} />
-        </>
+        </div>
       )}
+
       {location.summit && (
         <SummitPanel
           summit={location.summit}
@@ -91,26 +98,94 @@ export function LocationCard({
           refreshNonce={refreshNonce}
         />
       )}
-      <div className="forecast-links">
+
+      <footer className="card-foot">
         <a
-          className="forecast-link"
+          className="card-link"
           href={buildForecastUrl(location, weekend)}
           target="_blank"
           rel="noopener noreferrer"
         >
-          weather.gov →
+          weather.gov <ExternalIcon />
         </a>
         <a
-          className="forecast-link"
+          className="card-link"
           href={buildMeteoblueUrl(location, weekend)}
           target="_blank"
           rel="noopener noreferrer"
         >
-          meteoblue →
+          meteoblue <ExternalIcon />
         </a>
         <CardInfo score={score} />
-      </div>
+      </footer>
     </article>
+  );
+}
+
+function DayCell({ day }: { day: DaySummary }) {
+  const cond = dayCondition(day);
+  const pop = day.popMax == null ? '—' : `${Math.round(day.popMax)}%`;
+  const inches = day.precipInches == null ? '—' : `${day.precipInches.toFixed(2)}″`;
+  return (
+    <Tooltip.Root>
+      <Tooltip.Trigger
+        delay={150}
+        render={<div tabIndex={0} />}
+        className={`day day-${cond}`}
+        aria-label={`${dayLabel(day.date)}: ${CONDITION_LABEL[cond]}, ${pop} chance of rain, ${inches}`}
+      >
+        <span className="day-name">{dayLabel(day.date)}</span>
+        <span className="day-date">{formatMonthDay(day.date)}</span>
+        <WeatherIcon
+          className="day-icon"
+          kind={iconFor(day.conditions, day.popMax)}
+          size={34}
+        />
+        <span className="day-pop">{pop}</span>
+        <span className="day-inches">{inches}</span>
+      </Tooltip.Trigger>
+      <Tooltip.Portal>
+        <Tooltip.Positioner side="top" sideOffset={8}>
+          <Tooltip.Popup className="tooltip-popup day-tip">
+            <div className="day-tip-head">
+              <span className={`day-tip-dot day-tip-${cond}`} />
+              {CONDITION_LABEL[cond]}
+            </div>
+            {day.conditions && <div>{day.conditions}</div>}
+            {day.wind && <div className="day-tip-muted">Wind {day.wind}</div>}
+          </Tooltip.Popup>
+        </Tooltip.Positioner>
+      </Tooltip.Portal>
+    </Tooltip.Root>
+  );
+}
+
+function CardSkeleton() {
+  return (
+    <div className="card-body" aria-busy="true" aria-label="Loading forecast">
+      <div className="day-grid">
+        {[0, 1, 2, 3].map((i) => (
+          <div key={i} className="skeleton day-skeleton" />
+        ))}
+      </div>
+      <div className="skeleton strip-skeleton" />
+      <div className="skeleton chart-skeleton" />
+    </div>
+  );
+}
+
+function ExternalIcon() {
+  return (
+    <svg viewBox="0 0 12 12" width="10" height="10" aria-hidden>
+      <path
+        d="M4.5 2.5h5v5M9.5 2.5 3 9"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
   );
 }
 
@@ -128,13 +203,14 @@ function CardInfo({ score }: { score: number | null }) {
       </Tooltip.Trigger>
       <Tooltip.Portal>
         <Tooltip.Positioner side="top" align="end" sideOffset={6}>
-          <Tooltip.Popup className="card-info-popup">
+          <Tooltip.Popup className="tooltip-popup">
             <div className="card-info-row">
               <span className="card-info-label">Rain score</span>
               <span className="card-info-value">
                 {score == null ? '—' : score.toFixed(1)}
               </span>
             </div>
+            <div className="card-info-hint">Lower is drier. Sat/Sun count triple.</div>
           </Tooltip.Popup>
         </Tooltip.Positioner>
       </Tooltip.Portal>
@@ -211,36 +287,4 @@ function buildForecastUrl(location: Location, weekend: Weekend): string {
     bw: '',
   });
   return `https://forecast.weather.gov/MapClick.php?${params.toString()}`;
-}
-
-function DayBlock({
-  label,
-  day,
-  maxHourMm,
-}: {
-  label: string;
-  day: DaySummary;
-  maxHourMm: number;
-}) {
-  return (
-    <div className="day">
-      <div className="day-label">{label}</div>
-      <PrecipBadge
-        popMax={day.popMax}
-        precipInches={day.precipInches}
-        precipMmByHour={day.precipMmByHour}
-        maxHourMm={maxHourMm}
-      />
-    </div>
-  );
-}
-
-function maxHourMm(forecast: WeekendForecast): number {
-  let max = 0;
-  for (const day of forecast.days) {
-    for (const v of day.precipMmByHour) {
-      max = Math.max(max, v);
-    }
-  }
-  return max;
 }

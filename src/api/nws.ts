@@ -10,6 +10,8 @@ export type ForecastPeriod = {
   isDaytime: boolean;
   temperature: number;
   probabilityOfPrecipitation: { value: number | null };
+  shortForecast?: string;
+  windSpeed?: string;
 };
 
 export type HourPrecip = {

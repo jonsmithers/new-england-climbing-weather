@@ -22,7 +22,7 @@ Two weather sources, kept visually and structurally separate so "base of crag" n
 - **NWS (`api.weather.gov`)** — `src/api/nws.ts` — the authoritative crag (base) forecast. Two-step fetch: `/points` yields a forecast URL + grid coords, then the day/night periods and the gridpoint QPF are fetched in parallel (`parsePrecip` flattens multi-hour QPF into per-hour readings). See ARCHITECTURE.md for the full request sequence.
 - **Open-Meteo** — `src/api/openMeteo.ts` — summit panel only, and only for locations with a `summit` configured. Its `elevation` param gives summit-ish conditions without scraping. Returns daily min/max temp, PoP, precip sum (requested directly in °F / inches).
 
-Data flow: `LOCATIONS` (`src/locations.ts`) → `App` renders one `LocationCard` per crag → each card independently fetches NWS and owns its own `loading | ok | error` state (one bad fetch never breaks the page). `SummitPanel` does the same against Open-Meteo when `location.summit` is set. Raw API responses are normalized into a shared `WeekendForecast` / `DaySummary[]` shape by `src/lib/forecast.ts` (`summarizeWeekend` for NWS, `summarizeSummitWeekend` for Open-Meteo).
+Data flow: `LOCATIONS` (`src/locations.ts`) → `useCragForecasts` (`src/hooks/`, called from `App`) fetches NWS for every crag in parallel and keeps a separate `loading | ok | error` state for each crag (one bad fetch never breaks the page) → `App` ranks crags driest-first by `rainScore` and passes them to `Overview` (best-bet spotlight + heatmap) and to one `LocationCard` per crag. `SummitPanel` fetches Open-Meteo itself when `location.summit` is set. Raw API responses are normalized into a shared `WeekendForecast` / `DaySummary[]` shape by `src/lib/forecast.ts` (`summarizeWeekend` for NWS, `summarizeSummitWeekend` for Open-Meteo).
 
 ### The "weekend" concept (`src/lib/weekend.ts`)
 
@@ -32,9 +32,13 @@ Despite the name, a `Weekend` covers **four days — Fri, Sat, Sun, Mon** (`days
 
 Per-location responses are cached in `sessionStorage` with a 30-minute TTL (honors NWS's recommended cache window). Each API module (`nws.ts`, `openMeteo.ts`) has its **own private `readCache`/`writeCache`** — the logic is duplicated, not shared. `src/lib/cache.ts` provides cross-cutting helpers (`clearForecastCache`, `getOldestCacheAgeMs`) used by the `RefreshFooter`; it matches entries by key **prefix**, and exports `CACHE_PREFIX` as the single source of truth for those prefixes.
 
+### Theming
+
+Colors are tokens in `src/styles.css`, each one a `light-dark()` pair. Use the tokens; don't hard-code colors in component CSS. The theme toggle (`src/lib/theme.ts`) sets `data-theme` on `<html>`. `index.html` has an inline script that applies the saved theme before first paint, and it shares the `theme` localStorage key with `theme.ts`.
+
 ## Common changes
 
-- **Add/remove a crag:** edit `LOCATIONS` in `src/locations.ts`. Add an optional `summit: { lat, lon, elevationMeters, name? }` to enable the summit panel for that crag.
+- **Add/remove a crag:** edit `LOCATIONS` in `src/locations.ts`. Each crag needs a `region` (state abbreviation). Add an optional `summit: { lat, lon, elevationMeters, name? }` to enable the summit panel for that crag.
 - **External forecast links** (`weather.gov` graphical hourly + `meteoblue`) are built in `LocationCard.tsx` (`buildForecastUrl`, `buildMeteoblueUrl`) — both have detailed comments on their URL params; keep those comments accurate if you change the query strings.
 
 ## Note on docs

@@ -1,29 +1,49 @@
 .temp-chart {
+  display: block;
   width: 100%;
   height: auto;
-  display: block;
+  overflow: visible;
 }
 
 .temp-line {
-  stroke: var(--color-border);
-  stroke-width: 6;
+  fill: none;
+  stroke-width: 2.5;
   stroke-linecap: round;
 }
 
+.temp-line-high {
+  stroke: var(--temp-warm);
+}
+
+.temp-line-low {
+  stroke: var(--temp-cool);
+}
+
+.temp-dot {
+  fill: var(--surface-solid);
+  stroke-width: 2.5;
+}
+
 .temp-dot-high {
-  fill: var(--color-temp-high);
+  stroke: var(--temp-warm);
 }
 
 .temp-dot-low {
-  fill: var(--color-temp-low);
+  stroke: var(--temp-cool);
 }
 
 .temp-label {
-  font-size: 10px;
-  fill: var(--color-text);
-  font-family: var(--font);
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-variant-numeric: tabular-nums;
 }
 
-.temp-empty {
-  fill: var(--color-muted);
+.temp-label-high {
+  fill: var(--text);
+  font-weight: 600;
+}
+
+.temp-label-low {
+  fill: var(--text-muted);
+  font-weight: 500;
 }
