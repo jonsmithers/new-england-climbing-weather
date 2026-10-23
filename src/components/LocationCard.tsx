@@ -8,6 +8,7 @@ import {
   type DaySummary,
 } from '../lib/forecast';
 import type { ForecastState } from '../hooks/useCragForecasts';
+import { formatPrecip, usePrecipUnit } from '../lib/units';
 import { WeatherIcon, iconFor } from './WeatherIcon';
 import { PrecipStrip } from './PrecipStrip';
 import { TempChart } from './TempChart';
@@ -124,15 +125,16 @@ export function LocationCard({
 
 function DayCell({ day }: { day: DaySummary }) {
   const cond = dayCondition(day);
+  const [precipUnit] = usePrecipUnit();
   const pop = day.popMax == null ? '—' : `${Math.round(day.popMax)}%`;
-  const inches = day.precipInches == null ? '—' : `${day.precipInches.toFixed(2)}″`;
+  const precip = formatPrecip(day.precipInches, precipUnit);
   return (
     <Tooltip.Root>
       <Tooltip.Trigger
         delay={150}
         render={<div tabIndex={0} />}
         className={`day day-${cond}`}
-        aria-label={`${dayLabel(day.date)}: ${CONDITION_LABEL[cond]}, ${pop} chance of rain, ${inches}`}
+        aria-label={`${dayLabel(day.date)}: ${CONDITION_LABEL[cond]}, ${pop} chance of rain, ${precip}`}
       >
         <span className="day-name">{dayLabel(day.date)}</span>
         <span className="day-date">{formatMonthDay(day.date)}</span>
@@ -142,7 +144,7 @@ function DayCell({ day }: { day: DaySummary }) {
           size={34}
         />
         <span className="day-pop">{pop}</span>
-        <span className="day-inches">{inches}</span>
+        <span className="day-inches">{precip}</span>
       </Tooltip.Trigger>
       <Tooltip.Portal>
         <Tooltip.Positioner side="top" sideOffset={8}>

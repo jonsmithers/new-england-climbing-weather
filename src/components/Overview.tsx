@@ -1,6 +1,7 @@
 import type { Location } from '../locations';
 import { type Weekend, dayLabel, formatRange } from '../lib/weekend';
 import { dayCondition, weekendVerdict } from '../lib/forecast';
+import { formatTemp, useTempUnit } from '../lib/units';
 import type { ForecastState } from '../hooks/useCragForecasts';
 import { WeatherIcon, iconFor } from './WeatherIcon';
 import { TempChart } from './TempChart';
@@ -27,6 +28,7 @@ export function Overview({ rows, weekend }: Props) {
 }
 
 function BestBet({ rows, weekend }: Props) {
+  const [unit] = useTempUnit();
   const settled = rows.every((r) => r.state && r.state.status !== 'loading');
   const top = rows[0];
   const range = formatRange(weekend);
@@ -74,7 +76,8 @@ function BestBet({ rows, weekend }: Props) {
         <span className={`best-verdict best-verdict-${verdict.level}`}>{verdict.label}</span>
         {highs.length > 0 && lows.length > 0 && (
           <span className="best-temps">
-            {Math.round(Math.min(...lows))}°–{Math.round(Math.max(...highs))}°F
+            {formatTemp(Math.min(...lows), unit)}–
+            {formatTemp(Math.max(...highs), unit, { withUnit: true })}
           </span>
         )}
       </span>

@@ -9,6 +9,7 @@ import {
   type DaySummary,
   type WeekendForecast,
 } from '../lib/forecast';
+import { formatPrecip, formatTemp, usePrecipUnit, useTempUnit } from '../lib/units';
 import './SummitPanel.css';
 
 type Props = {
@@ -98,8 +99,10 @@ export function SummitPanel({ summit, weekend, refreshNonce }: Props) {
 }
 
 function SummitDay({ label, day }: { label: string; day: DaySummary }) {
-  const hi = day.high == null ? '—' : `${Math.round(day.high)}°`;
-  const lo = day.low == null ? '—' : `${Math.round(day.low)}°`;
+  const [tempUnit] = useTempUnit();
+  const [precipUnit] = usePrecipUnit();
+  const hi = formatTemp(day.high, tempUnit);
+  const lo = formatTemp(day.low, tempUnit);
   const pop = day.popMax == null ? '—' : `${Math.round(day.popMax)}%`;
   return (
     <div className="summit-day">
@@ -111,7 +114,7 @@ function SummitDay({ label, day }: { label: string; day: DaySummary }) {
       </span>
       <span className="summit-day-precip">
         {pop} ·{' '}
-        {day.precipInches === null ? '—' : `${day.precipInches.toFixed(2)}″`}
+        {formatPrecip(day.precipInches, precipUnit)}
       </span>
     </div>
   );

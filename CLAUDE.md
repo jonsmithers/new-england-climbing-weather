@@ -36,6 +36,10 @@ Per-location responses are cached in `sessionStorage` with a 30-minute TTL (hono
 
 Colors are tokens in `src/styles.css`, each one a `light-dark()` pair. Use the tokens; don't hard-code colors in component CSS. The theme toggle (`src/lib/theme.ts`) sets `data-theme` on `<html>`. `index.html` has an inline script that applies the saved theme before first paint, and it shares the `theme` localStorage key with `theme.ts`.
 
+### Units and preferences
+
+Internal data is always °F and inches. The °F/°C and in/mm header toggles (`src/components/UnitToggle.tsx`) only affect display: format every displayed temperature or precip amount with `formatTemp` / `formatPrecip` from `src/lib/units.ts`, never by hand. Unit choices are stored with `src/lib/preferences.ts`, a generic typed localStorage store (`definePreference(key, default, validator)` + `usePreference(pref)`, synced across components and tabs). Use it for new user preferences; `theme.ts` stays on its own key because of the `index.html` pre-paint script.
+
 ## Common changes
 
 - **Add/remove a crag:** edit `LOCATIONS` in `src/locations.ts`. Each crag needs a `region` (state abbreviation). Add an optional `summit: { lat, lon, elevationMeters, name? }` to enable the summit panel for that crag.

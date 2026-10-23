@@ -4,6 +4,7 @@ import { LocationCard } from './components/LocationCard';
 import { Overview } from './components/Overview';
 import { WeekendPicker } from './components/WeekendPicker';
 import { ThemeToggle } from './components/ThemeToggle';
+import { PrecipUnitToggle, TempUnitToggle } from './components/UnitToggle';
 import { RefreshFooter } from './components/RefreshFooter';
 import { useCragForecasts } from './hooks/useCragForecasts';
 import { weekendAt } from './lib/weekend';
@@ -41,7 +42,11 @@ export function App() {
               </svg>
               New England Climbing Weather
             </span>
-            <ThemeToggle />
+            <div className="hero-controls">
+              <TempUnitToggle />
+              <PrecipUnitToggle />
+              <ThemeToggle />
+            </div>
           </div>
           <h1 className="hero-title">
             Where’s it dry

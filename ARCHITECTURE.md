@@ -71,7 +71,7 @@ All requests fan out in parallel per render. `useCragForecasts` gives each crag 
 
 Top to bottom:
 
-1. **Header** — scenic hero (layered ridge silhouettes), weekend picker, and a light / system / dark theme toggle.
+1. **Header** — scenic hero (layered ridge silhouettes), weekend picker, °F/°C and in/mm unit toggles, and a light / system / dark theme toggle.
 2. **Overview** — a "best bet" spotlight for the driest crag, next to a crag × day heatmap (chance of rain, tinted by dry / damp / wet). Rows link to the matching card.
 3. **Cards**, sorted driest-first by `rainScore`.
 
@@ -87,6 +87,12 @@ Top to bottom:
 ## Theming
 
 All colors are CSS custom properties defined once in `src/styles.css` as `light-dark()` pairs. `color-scheme: light dark` follows the OS. The theme toggle pins one side by setting `data-theme` on `<html>` (saved in `localStorage`). An inline script in `index.html` applies the saved choice before first paint.
+
+## Units and preferences
+
+Both APIs are asked for °F and inches (NWS QPF arrives in mm and is converted to inches on ingest), and everything internal (`DaySummary`, `rainScore`) stays in those units. The °F/°C and in/mm toggles are display-only: `src/lib/units.ts` (`formatTemp`, `formatPrecip`) converts at render time, so scoring and caching never depend on the user's choice. TempChart lays out its curve in °F and converts only the labels, so the shape is identical in either unit. Defaults are °F and inches.
+
+User preferences live in `localStorage` through `src/lib/preferences.ts`: a typed store (`definePreference` + `usePreference`) that validates stored JSON, falls back to the default on garbage or blocked storage, and syncs every subscriber in the tab and across tabs. Reads are synchronous, so the first render already uses the saved units (no inline pre-paint script needed, unlike the theme). The theme keeps its own older `theme` key because `index.html` reads it before first paint.
 
 ## Caching
 

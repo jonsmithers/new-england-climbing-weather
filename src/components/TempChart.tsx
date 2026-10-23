@@ -1,5 +1,6 @@
 import { useId } from 'react';
 import type { DaySummary } from '../lib/forecast';
+import { formatTemp, useTempUnit } from '../lib/units';
 import './TempChart.css';
 
 type Props = { days: DaySummary[] };
@@ -32,8 +33,11 @@ function smoothPath(points: Point[], move = true): string {
 
 // Hi/lo band for each forecast day. Each day's x sits at the center of its
 // quarter of the width, so it lines up with the 4-column day grid above it.
+// Geometry is computed in °F (the data's unit); only the labels are converted,
+// so the curve's shape is identical in either unit.
 export function TempChart({ days }: Props) {
   const gradientId = useId();
+  const [unit] = useTempUnit();
   const temps = days
     .flatMap((day) => [day.high, day.low])
     .filter((v): v is number => v !== null);
@@ -70,7 +74,7 @@ export function TempChart({ days }: Props) {
       aria-label={days
         .map(
           (d) =>
-            `${d.date.toLocaleDateString('en-US', { weekday: 'long' })}: high ${d.high ?? 'unknown'}, low ${d.low ?? 'unknown'}`,
+            `${d.date.toLocaleDateString('en-US', { weekday: 'long' })}: high ${d.high == null ? 'unknown' : formatTemp(d.high, unit, { withUnit: true })}, low ${d.low == null ? 'unknown' : formatTemp(d.low, unit, { withUnit: true })}`,
         )
         .join('; ')}
     >
@@ -87,7 +91,7 @@ export function TempChart({ days }: Props) {
         <g key={`h${p.x}`}>
           <circle cx={p.x} cy={p.y} r={4} className="temp-dot temp-dot-high" />
           <text x={p.x} y={p.y - 9} textAnchor="middle" className="temp-label temp-label-high">
-            {Math.round(p.t)}°
+            {formatTemp(p.t, unit)}
           </text>
         </g>
       ))}
@@ -95,7 +99,7 @@ export function TempChart({ days }: Props) {
         <g key={`l${p.x}`}>
           <circle cx={p.x} cy={p.y} r={4} className="temp-dot temp-dot-low" />
           <text x={p.x} y={p.y + 19} textAnchor="middle" className="temp-label temp-label-low">
-            {Math.round(p.t)}°
+            {formatTemp(p.t, unit)}
           </text>
         </g>
       ))}

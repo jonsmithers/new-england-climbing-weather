@@ -56,9 +56,18 @@
 .hero-bar {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   justify-content: space-between;
   gap: 1rem;
   margin-bottom: clamp(2rem, 6vw, 3.5rem);
+}
+
+/* Header toggles (units, theme). Wraps under the brand on narrow screens. */
+.hero-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
 }
 
 .brand {
