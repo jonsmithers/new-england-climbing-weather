@@ -33,4 +33,5 @@ export const LOCATIONS: Location[] = [
   { id: 'crowhill', name: 'Crow Hill', lat: 42.5722, lon: -71.8911 },
   { id: 'pawtuckaway', name: 'Pawtuckaway', lat: 43.0945, lon: -71.1605 },
   { id: 'quincy', name: 'Quincy Quarries', lat: 42.2360, lon: -71.0245 },
+  { id: 'rossrocks', name: 'Ross Rocks', lat: 41.77851, lon: -71.86603 },
 ];
