@@ -194,7 +194,7 @@ function ExternalIcon() {
 function CardInfo({ score }: { score: number | null }) {
   return (
     <Tooltip.Root>
-      <Tooltip.Trigger className="card-info-trigger" aria-label="Card details">
+      <Tooltip.Trigger delay={150} className="card-info-trigger" aria-label="Card details">
         <svg viewBox="0 0 16 16" width="15" height="15" aria-hidden>
           <circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" />
           <circle cx="8" cy="4.5" r="1" fill="currentColor" stroke="none" />
