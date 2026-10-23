@@ -238,49 +238,79 @@ function CardInfo({ score }: { score: number | null }) {
   );
 }
 
-// meteoblue's weekly forecast supports ?day=N to expand a specific day's
-// detail panel. N is 1-indexed from today (today=1, tomorrow=2, ...).
+// meteoblue's week view, e.g. /en/weather/week/44.1581N-71.6989E?day=2.
+//
+// Location segment: `{lat}N{lon}E` with a signed longitude (west is
+// negative). The `N…W` spelling is NOT accepted: it silently falls back to
+// an unrelated town. meteoblue rounds to 3 decimals and fills in elevation
+// from its terrain model plus the time zone (its canonical URL looks like
+// 44.158N-71.699E1232_America%2FNew_York). An explicit elevation in meters
+// can follow the `E` and does change the forecast; we leave it to the
+// terrain model.
+//
+// ?day=N selects that day's tab and detail panel. N is 1-indexed from today
+// in the location's time zone (today=1, tomorrow=2, ...). The page has 14 day
+// tabs, so 1..14 is valid; anything larger selects no day at all.
 function buildMeteoblueUrl(location: Location, weekend: Weekend): string {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const saturday = new Date(weekend.saturday);
   saturday.setHours(0, 0, 0, 0);
+  // Rounded because a DST changeover makes one day 23 or 25 hours long.
   const daysFromToday = Math.round(
     (saturday.getTime() - today.getTime()) / 86_400_000,
   );
-  const day = Math.max(1, Math.min(7, daysFromToday + 1));
+  const day = Math.max(1, Math.min(14, daysFromToday + 1));
   return `https://www.meteoblue.com/en/weather/week/${location.lat}N${location.lon}E?day=${day}`;
 }
 
-// Builds a forecast.weather.gov graphical hourly forecast URL pointed at
-// Saturday morning of the selected weekend.
+// weather.gov's graphical hourly page plots a fixed 48-hour window, so it
+// can't span the whole Fri–Mon weekend. We start it at 8am Saturday, which
+// covers Sat and Sun daytime; the page's "Forward 2 Days" button reaches the
+// rest of Monday.
 //
+// AheadHour is how many hours after the top of the current hour the window
+// starts (option 0 of the page's "48-Hour Period Starting" dropdown is the
+// current hour). The dropdown only goes to about 107 hours out, and any
+// larger value silently resets the window to now. So a weekend further out
+// than that (any "next weekend", or this one viewed on Sun/Mon) gets clamped
+// to MAX_AHEAD_HOUR, the latest window that's reliably there.
+const MAX_AHEAD_HOUR = 96;
+
 // Param reference (from the form on weather.gov's hourly graph page):
-//   AheadHour     hours from "now" to the start of the displayed window
+//   AheadHour     see above
 //   FcstType      "graphical" = the hourly chart view
-//   textField1/2  lat / lon (the form's coordinate inputs)
+//   textField1/2  lat / lon (the page resolves these to the NWS grid point
+//                 and labels it, e.g. "5 Miles SSE Franconia NH")
+//   site          form default; we keep it
 //   unit          0 = English, 1 = metric (global toggle)
-//   dd, bw        display flags (dashes/dots, black-and-white); empty = off
+//   dd, bw        display flags passed through to the chart renderer; the
+//                 form leaves them empty (off)
 //
 // w0..w8 pick which variables are plotted (each is one row of the chart):
 //   w0=t        temperature
 //   w1=td       dewpoint
-//   w2=hi       heat index
+//   w2=hi       the seasonal "feels like" row. weather.gov plots heat index
+//               or wind chill depending on the season; `hi` and `wc` both
+//               enable whichever row is in season (its own links send `hi`).
 //   w3=sfcwind  surface wind  (w3u=1 selects mph)
 //   w4=sky      sky cover %
 //   w5=pop      probability of precipitation
 //   w6=rh       relative humidity
 //   w7=rain     rain amount
 //   w8=thunder  thunder probability
-//
-// w10u/w11u/w12u are unit selectors for rows we don't plot (wave/snow/ice),
-// but weather.gov's form posts them regardless, so we include the defaults.
 function buildForecastUrl(location: Location, weekend: Weekend): string {
   const target = new Date(weekend.saturday);
   target.setHours(8, 0, 0, 0);
+  const currentHour = new Date();
+  currentHour.setMinutes(0, 0, 0);
+  // Absolute hours, so a DST changeover inside the gap is counted correctly.
   const aheadHour = Math.max(
     0,
-    Math.round((target.getTime() - Date.now()) / 3_600_000),
+    Math.min(
+      MAX_AHEAD_HOUR,
+      Math.round((target.getTime() - currentHour.getTime()) / 3_600_000),
+    ),
   );
   const params = new URLSearchParams({
     w0: 't',
@@ -293,9 +323,6 @@ function buildForecastUrl(location: Location, weekend: Weekend): string {
     w6: 'rh',
     w7: 'rain',
     w8: 'thunder',
-    w10u: '0',
-    w11u: '1',
-    w12u: '1',
     AheadHour: String(aheadHour),
     Submit: 'Submit',
     FcstType: 'graphical',
