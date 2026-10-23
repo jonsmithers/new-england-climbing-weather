@@ -4,9 +4,13 @@ import { LocationCard } from './components/LocationCard';
 import { Overview } from './components/Overview';
 import { WeekendPicker } from './components/WeekendPicker';
 import { ThemeToggle } from './components/ThemeToggle';
+import { OriginPicker } from './components/OriginPicker';
 import { PrecipUnitToggle, TempUnitToggle } from './components/UnitToggle';
 import { RefreshFooter } from './components/RefreshFooter';
 import { useCragForecasts } from './hooks/useCragForecasts';
+import { useDriveTimes } from './hooks/useDriveTimes';
+import { usePreference } from './lib/preferences';
+import { ORIGIN } from './lib/origin';
 import { weekendAt } from './lib/weekend';
 import { rainScore } from './lib/forecast';
 import { clearForecastCache } from './lib/cache';
@@ -17,6 +21,8 @@ export function App() {
   const [refreshNonce, setRefreshNonce] = useState(0);
   const weekend = weekendAt(offset);
   const states = useCragForecasts(LOCATIONS, weekend, refreshNonce);
+  const [origin] = usePreference(ORIGIN);
+  const drives = useDriveTimes(LOCATIONS, origin);
 
   // Sort driest-first by rain score. Crags not yet scored (loading/error) fall
   // to the bottom; Array.sort is stable so ties keep LOCATIONS order.
@@ -24,10 +30,10 @@ export function App() {
     const rows = LOCATIONS.map((location) => {
       const state = states[location.id];
       const score = state?.status === 'ok' ? rainScore(state.data) : null;
-      return { location, state, score };
+      return { location, state, score, drive: drives[location.id] };
     });
     return rows.sort((a, b) => (a.score ?? Infinity) - (b.score ?? Infinity));
-  }, [states]);
+  }, [states, drives]);
 
   return (
     <>
@@ -43,6 +49,7 @@ export function App() {
               New England Climbing Weather
             </span>
             <div className="hero-controls">
+              <OriginPicker />
               <TempUnitToggle />
               <PrecipUnitToggle />
               <ThemeToggle />
@@ -70,7 +77,7 @@ export function App() {
           <span className="section-note">Hover a day for conditions and wind</span>
         </div>
         <div className="grid">
-          {ranked.map(({ location, state, score }, i) => (
+          {ranked.map(({ location, state, score, drive }, i) => (
             <LocationCard
               key={location.id}
               index={i}
@@ -78,6 +85,7 @@ export function App() {
               weekend={weekend}
               state={state}
               score={score}
+              drive={drive}
               rank={score == null ? null : i + 1}
               refreshNonce={refreshNonce}
             />

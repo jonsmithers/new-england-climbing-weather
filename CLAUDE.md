@@ -13,7 +13,7 @@ There is no test runner and no linter/formatter configured. `typecheck` is the o
 
 ## What this is
 
-A static, single-page React app (React 19 + Vite + TypeScript) that shows a weekend weather forecast for a curated list of New England climbing crags, one card per crag. **No backend, no database, no auth, no API keys** — the browser calls two free, CORS-enabled weather APIs directly. Styling is plain CSS (one `.css` file per component); unstyled accessible primitives come from `@base-ui/react`.
+A static, single-page React app (React 19 + Vite + TypeScript) that shows a weekend weather forecast for a curated list of New England climbing crags, one card per crag. **No backend, no database, no auth, no API keys** — the browser calls free, CORS-enabled APIs directly (two for weather, plus routing and geocoding for drive times). Styling is plain CSS (one `.css` file per component); unstyled accessible primitives come from `@base-ui/react`.
 
 ## Architecture
 
@@ -21,6 +21,12 @@ Two weather sources, kept visually and structurally separate so "base of crag" n
 
 - **NWS (`api.weather.gov`)** — `src/api/nws.ts` — the authoritative crag (base) forecast. Two-step fetch: `/points` yields a forecast URL + grid coords, then the day/night periods and the gridpoint QPF are fetched in parallel (`parsePrecip` flattens multi-hour QPF into per-hour readings). See ARCHITECTURE.md for the full request sequence.
 - **Open-Meteo** — `src/api/openMeteo.ts` — summit panel only, and only for locations with a `summit` configured. Its `elevation` param gives summit-ish conditions without scraping. Returns daily min/max temp, PoP, precip sum (requested directly in °F / inches).
+
+Drive times (separate from the weather data):
+
+- **OSRM on FOSSGIS (`routing.openstreetmap.de`)**: `src/api/routing.ts`. One `/table` request returns the drive time and distance from the origin to every crag. `useDriveTimes` (called from `App`) maps crag id to `Drive | null`. A crag missing from that map (loading or failed) shows no distance, and a failed call never breaks the page.
+- **Photon (`photon.komoot.io`)**: `src/api/geocode.ts`, the place search in `OriginPicker`. It searches **on submit only**, never per keystroke (fair-use policy).
+- The origin is the `ORIGIN` preference in `src/lib/origin.ts` (default: Davis Square, Somerville). Attribution for OSRM/OSM is required and lives in the `RefreshFooter` credits.
 
 Data flow: `LOCATIONS` (`src/locations.ts`) → `useCragForecasts` (`src/hooks/`, called from `App`) fetches NWS for every crag in parallel and keeps a separate `loading | ok | error` state for each crag (one bad fetch never breaks the page) → `App` ranks crags driest-first by `rainScore` and passes them to `Overview` (best-bet spotlight + heatmap) and to one `LocationCard` per crag. `SummitPanel` fetches Open-Meteo itself when `location.summit` is set. Raw API responses are normalized into a shared `WeekendForecast` / `DaySummary[]` shape by `src/lib/forecast.ts` (`summarizeWeekend` for NWS, `summarizeSummitWeekend` for Open-Meteo).
 
@@ -31,6 +37,8 @@ Despite the name, a `Weekend` covers **four days — Fri, Sat, Sun, Mon** (`days
 ### Caching
 
 Per-location responses are cached in `sessionStorage` with a 30-minute TTL (honors NWS's recommended cache window). Each API module (`nws.ts`, `openMeteo.ts`) has its **own private `readCache`/`writeCache`** — the logic is duplicated, not shared. `src/lib/cache.ts` provides cross-cutting helpers (`clearForecastCache`, `getOldestCacheAgeMs`) used by the `RefreshFooter`; it matches entries by key **prefix**, and exports `CACHE_PREFIX` as the single source of truth for those prefixes.
+
+Drive times are cached separately in `localStorage` under `drive:<origin lat,lon to 3 dp>:<crag id>` with a 30-day TTL (`src/api/routing.ts`). That prefix is deliberately **not** in `CACHE_PREFIX`, so the forecast Refresh button doesn't clear drive times.
 
 ### Theming
 

@@ -80,6 +80,15 @@
   color: var(--text-faint);
 }
 
+.card-drive {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
 .verdict {
   align-self: flex-start;
   display: inline-flex;

@@ -9,10 +9,13 @@ import {
 } from '../lib/forecast';
 import type { ForecastState } from '../hooks/useCragForecasts';
 import { formatPrecip, usePrecipUnit } from '../lib/units';
+import type { Drive } from '../api/routing';
+import { formatDriveDistance, formatDriveTime } from '../lib/drive';
 import { WeatherIcon, iconFor } from './WeatherIcon';
 import { PrecipStrip } from './PrecipStrip';
 import { TempChart } from './TempChart';
 import { SummitPanel } from './SummitPanel';
+import { CarIcon } from './OriginPicker';
 import './LocationCard.css';
 
 type Props = {
@@ -22,6 +25,8 @@ type Props = {
   // 1-based position in the driest-first ordering; null until scored.
   rank: number | null;
   score: number | null;
+  // Drive from the user's origin; undefined while loading or if routing failed.
+  drive?: Drive | null;
   refreshNonce: number;
   // Position in the grid, used only to stagger the entrance animation.
   index: number;
@@ -40,6 +45,7 @@ export function LocationCard({
   state = { status: 'loading' },
   rank,
   score,
+  drive,
   refreshNonce,
   index,
 }: Props) {
@@ -57,6 +63,7 @@ export function LocationCard({
             {location.name}
             <span className="card-region">{location.region}</span>
           </h2>
+          {drive && <DriveLine drive={drive} />}
           {verdict ? (
             <span className={`verdict verdict-${verdict.level}`}>
               <span className="verdict-dot" aria-hidden />
@@ -159,6 +166,17 @@ function DayCell({ day }: { day: DaySummary }) {
         </Tooltip.Positioner>
       </Tooltip.Portal>
     </Tooltip.Root>
+  );
+}
+
+function DriveLine({ drive }: { drive: Drive }) {
+  const time = formatDriveTime(drive);
+  const distance = formatDriveDistance(drive);
+  return (
+    <span className="card-drive" title="Approximate drive time and distance (no traffic)">
+      <CarIcon size={14} />
+      {time} · {distance}
+    </span>
   );
 }
 

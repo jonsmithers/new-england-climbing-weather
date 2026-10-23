@@ -23,12 +23,16 @@ The window is four days (Fri–Mon), with Saturday as the anchor day. See `src/l
 
 ## Data sources
 
-Two free, browser-callable APIs. No keys required.
+Two free, browser-callable weather APIs, plus two for drive times. No keys required.
 
 | Source | Used for | Notes |
 |---|---|---|
 | [National Weather Service](https://www.weather.gov/documentation/services-web-api) (`api.weather.gov`) | Crag forecast (the four data points at the base of the crag) | Authoritative US forecast. CORS-enabled. Recommends a 30-min cache. |
 | [Open-Meteo](https://open-meteo.com/) | Summit panel only (elevation-aware) | Free, no key, elevation parameter gives us summit-ish conditions without scraping. |
+| [OSRM](https://project-osrm.org/) on [FOSSGIS](https://routing.openstreetmap.de/) (`routing.openstreetmap.de/routed-car`) | Drive time + distance from the origin to each crag | One `/table` request covers all crags. CORS `*`. Policy: ≤1 req/s, no heavy use, attribution + "fix the map" link required (in the footer credits). No traffic data, so times run long on highway trips. |
+| [Photon](https://photon.komoot.io/) (komoot) | Origin place search | Fair use, so we search on submit only (no per-keystroke autocomplete). CORS `*`. |
+
+**Why OSRM `/table` and not Valhalla:** the FOSSGIS Valhalla matrix caps paths at 150 km ("Path distance exceeds the max distance limit"), which rules out the Gunks and the White Mountains from Boston, and its `/route` would mean one request per crag. `router.project-osrm.org` returns the same numbers, but the OSRM wiki points to routing.openstreetmap.de as the current public server. Nominatim also works for geocoding, but Photon's policy is friendlier and it supports a location bias.
 
 **Why two sources, not one:** NWS is the authoritative US forecast for the crag itself. Open-Meteo's elevation-aware endpoint gives us a summit-conditions panel without scraping `mountain-forecast.com`. The two are kept visually separate on the card so a user never confuses "base of crag" with "summit" numbers.
 
@@ -41,6 +45,8 @@ locations.ts ──► for each crag ──┬─► NWS:  /points/{lat,lon} →
                                  └─► Open-Meteo (only if summit configured):
                                      /v1/forecast?lat&lon&elevation&daily=...
 ```
+
+Drive times are a separate, origin-keyed request: `OSRM /table/v1/driving/{origin};{crag};…?sources=0&annotations=duration,distance` (`src/api/routing.ts`, via `useDriveTimes`). Only crags missing from the cache are requested.
 
 All requests fan out in parallel per render. `useCragForecasts` gives each crag its own loading and error slot, so one bad fetch doesn't break the page.
 
@@ -71,13 +77,13 @@ All requests fan out in parallel per render. `useCragForecasts` gives each crag 
 
 Top to bottom:
 
-1. **Header** — scenic hero (layered ridge silhouettes), weekend picker, °F/°C and in/mm unit toggles, and a light / system / dark theme toggle.
+1. **Header** — scenic hero (layered ridge silhouettes), weekend picker, an origin picker for drive times (search a place, pick a result; default Davis Square, Somerville), °F/°C and in/mm unit toggles, and a light / system / dark theme toggle.
 2. **Overview** — a "best bet" spotlight for the driest crag, next to a crag × day heatmap (chance of rain, tinted by dry / damp / wet). Rows link to the matching card.
 3. **Cards**, sorted driest-first by `rainScore`.
 
 ### Card layout
 
-1. Crag name, state, a verdict pill ("3 of 4 days dry"), and its driest-first rank.
+1. Crag name, state, approximate drive time + distance from the origin (hidden if routing failed), a verdict pill ("3 of 4 days dry"), and its driest-first rank.
 2. **Day tiles** (Fri–Mon) — weather icon from NWS `shortForecast`, max chance of rain, inches. Tinted by `dayCondition`: dry / damp / wet. Hover or focus a tile for the forecast text and wind.
 3. **Hourly precip strip** — one 96-hour timeline whose bars sit under each day's tile. Absolute sqrt scale (not per-card), so bar heights compare across crags.
 4. **Temp band chart** — smooth hi/lo curves on the same 4-column grid, hand-rolled SVG, no chart library.
@@ -98,6 +104,7 @@ User preferences live in `localStorage` through `src/lib/preferences.ts`: a type
 
 - Per-location response cached in `sessionStorage` with a 30-minute TTL.
 - Honors NWS's recommended cache window and keeps repeated navigation cheap.
+- Drive times are cached in `localStorage` per (origin rounded to ~100 m, crag) for 30 days. Drive times don't change week to week, so the Refresh button leaves them alone. Switching back to a previous origin needs no request.
 
 ## Out of scope (deliberately)
 
@@ -112,4 +119,5 @@ User preferences live in `localStorage` through `src/lib/preferences.ts`: a type
 - **NWS reliability:** occasional 500s or stale responses. Per-card error states are required.
 - **Open-Meteo ≠ NWS:** the two models will disagree by a few degrees and a few percent rain. That's expected. Don't average them; show them separately.
 - **CORS:** both APIs allow browser calls, but worth verifying on the first request from a deployed origin.
+- **Routing/geocoding are volunteer-run public servers** (FOSSGIS, komoot) with no availability guarantee. Drive times are a nice-to-have, so failures just hide the distance, and the long cache keeps our request volume to roughly one per origin per month.
 - **NWS User-Agent:** the API requests a custom User-Agent identifying the app. Browsers may strip it; setting `Accept: application/geo+json` is the practical lever we have.

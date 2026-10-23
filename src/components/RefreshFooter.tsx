@@ -62,7 +62,19 @@ export function RefreshFooter({ onRefresh }: Props) {
         <a href="https://open-meteo.com/" target="_blank" rel="noopener noreferrer">
           Open-Meteo
         </a>
-        .
+        . Drive times from{' '}
+        <a href="https://routing.openstreetmap.de/" target="_blank" rel="noopener noreferrer">
+          OSRM / FOSSGIS
+        </a>
+        , map data ©{' '}
+        <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">
+          OpenStreetMap contributors
+        </a>{' '}
+        (
+        <a href="https://www.openstreetmap.org/fixthemap" target="_blank" rel="noopener noreferrer">
+          fix the map
+        </a>
+        ).
       </p>
     </footer>
   );
