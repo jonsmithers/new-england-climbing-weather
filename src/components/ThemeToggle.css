@@ -4,7 +4,7 @@
   gap: 2px;
   border-radius: 999px;
   background: var(--surface);
-  border: 1px solid var(--border);
+  border: 1px solid var(--border-strong);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
 }
@@ -31,7 +31,13 @@
 }
 
 .theme-option[data-pressed] {
-  background: var(--surface-solid);
-  color: var(--text);
-  box-shadow: var(--shadow-lg);
+  background: var(--control-on);
+  color: var(--control-on-text);
+  box-shadow: var(--shadow);
+}
+
+/* Heavier strokes on the selected icon, so the state isn't carried by color
+   alone. CSS overrides the SVG's strokeWidth presentation attributes. */
+.theme-option[data-pressed] svg * {
+  stroke-width: 2.1;
 }

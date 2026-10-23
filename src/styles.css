@@ -29,6 +29,12 @@
   --accent-soft: light-dark(rgb(232 89 42 / 0.12), rgb(255 138 92 / 0.16));
   --focus: light-dark(#2f6fed, #7aa7ff);
 
+  /* Segmented controls (header toggles). The selected segment is an inverted
+     fill (dark on light, light on dark) so it reads at a glance: >13:1
+     against the track in both themes, where a white-on-white raise was ~1:1. */
+  --control-on: var(--text);
+  --control-on-text: var(--surface-solid);
+
   /* Per-day climbability (see dayCondition) */
   --dry: light-dark(#15924a, #4ade80);
   --dry-bg: light-dark(#dcf5e5, rgb(74 222 128 / 0.14));
