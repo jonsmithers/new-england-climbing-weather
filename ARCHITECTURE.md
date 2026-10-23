@@ -88,7 +88,7 @@ Top to bottom:
 3. **Hourly precip strip** — one 96-hour timeline whose bars sit under each day's tile. Absolute sqrt scale (not per-card), so bar heights compare across crags.
 4. **Temp band chart** — smooth hi/lo curves on the same 4-column grid, hand-rolled SVG, no chart library.
 5. **Summit panel** — collapsed by default, only renders when `summit` is configured.
-6. Footer links to weather.gov (48-hour hourly graph starting 8am Saturday) and meteoblue (week view, Saturday's tab open). Both use the crag's base coordinates; weather.gov's graph can't reach past ~4 days out, so further weekends clamp to its last window. Param details live next to the URL builders in `LocationCard.tsx`.
+6. Footer links to weather.gov (48-hour hourly graph starting 8am Saturday) and meteoblue (week view, Saturday's tab open). Both use the crag's base coordinates; weather.gov's graph can't reach past ~4 days out, so further weekends clamp to its last window. Param details live next to the URL builders in `LocationCard.tsx`. White Mountains crags (Cannon, Cathedral, Whitehorse) opt in via `extraLinks` to a third link, "MWOBS Higher Summits": Mount Washington Observatory's regional summit forecast, labeled as such because it isn't crag-specific. The links row wraps on narrow screens.
 
 ## Viability score
 

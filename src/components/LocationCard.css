@@ -304,6 +304,7 @@
 .card-foot {
   margin-top: auto;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 0.35rem;
   padding-top: 0.7rem;
@@ -318,6 +319,7 @@
   border-radius: 999px;
   font-size: 0.78rem;
   font-weight: 500;
+  white-space: nowrap;
   color: var(--text-muted);
   text-decoration: none;
   transition:

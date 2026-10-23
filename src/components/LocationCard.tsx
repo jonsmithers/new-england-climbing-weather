@@ -1,6 +1,6 @@
 import type { CSSProperties } from 'react';
 import { Tooltip } from '@base-ui/react/tooltip';
-import type { Location } from '../locations';
+import type { ExtraLinkId, Location } from '../locations';
 import { type Weekend, dayLabel, formatMonthDay } from '../lib/weekend';
 import {
   COMFORT_BAND_F,
@@ -126,6 +126,21 @@ export function LocationCard({
         >
           meteoblue <ExternalIcon />
         </a>
+        {location.extraLinks?.map((id) => {
+          const link = EXTRA_LINKS[id];
+          return (
+            <a
+              key={id}
+              className="card-link"
+              href={link.href}
+              title={link.title}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {link.label} <ExternalIcon />
+            </a>
+          );
+        })}
         <CardInfo score={score} hasDrive={drive != null} />
       </footer>
     </article>
@@ -259,6 +274,19 @@ function CardInfo({ score, hasDrive }: { score: Viability | null; hasDrive: bool
     </Tooltip.Root>
   );
 }
+
+// Per-crag opt-in links (see `extraLinks` in locations.ts). The labels name
+// the forecast's scope so a regional product isn't mistaken for a crag one.
+const EXTRA_LINKS: Record<ExtraLinkId, { label: string; title: string; href: string }> = {
+  // Fixed URL, no params: one hand-written forecast for the White Mountains'
+  // higher summits, issued twice daily (the old .aspx URL 301s here).
+  mwobs: {
+    label: 'MWOBS Higher Summits',
+    title:
+      "Mount Washington Observatory's Higher Summits Forecast: regional White Mountains summit conditions, not specific to this crag",
+    href: 'https://mountwashington.org/weather/higher-summits-forecast/',
+  },
+};
 
 // meteoblue's week view, e.g. /en/weather/week/44.1581N-71.6989E?day=2.
 //
