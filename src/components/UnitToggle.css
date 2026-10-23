@@ -1,44 +1,10 @@
-/* Mirrors .theme-toggle (ThemeToggle.css) so the header controls match. */
-.unit-toggle {
-  display: inline-flex;
-  padding: 3px;
-  gap: 2px;
-  border-radius: 999px;
-  background: var(--surface);
-  border: 1px solid var(--border-strong);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-}
-
+/* Track and selected state come from .segmented in styles.css. */
 .unit-option {
-  appearance: none;
   display: grid;
   place-items: center;
   min-width: 30px;
   height: 30px;
   padding: 0 7px;
-  border: 0;
-  border-radius: 999px;
-  background: transparent;
-  color: var(--text-muted);
-  font: inherit;
   font-size: 0.78rem;
-  font-weight: 500;
   font-variant-numeric: tabular-nums;
-  cursor: pointer;
-  transition:
-    background 140ms ease,
-    color 140ms ease;
-}
-
-.unit-option:hover {
-  color: var(--text);
-}
-
-.unit-option[data-pressed] {
-  background: var(--control-on);
-  color: var(--control-on-text);
-  box-shadow: var(--shadow);
-  /* Weight change too, so the state isn't carried by color alone. */
-  font-weight: 700;
 }

@@ -16,7 +16,7 @@ export function WeekendPicker({ offset, onOffsetChange }: Props) {
 
   return (
     <ToggleGroup
-      className="weekend-picker"
+      className="segmented weekend-picker"
       value={[String(offset)]}
       onValueChange={(values) => {
         if (values.length === 0) return;
@@ -29,7 +29,7 @@ export function WeekendPicker({ offset, onOffsetChange }: Props) {
         <Toggle
           key={opt.offset}
           value={String(opt.offset)}
-          className="weekend-option"
+          className="segmented-option weekend-option"
         >
           <span className="weekend-label">{opt.label}</span>
           <span className="weekend-range">{formatRange(opt.weekend)}</span>

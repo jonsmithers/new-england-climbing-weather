@@ -1,39 +1,10 @@
-.theme-toggle {
-  display: inline-flex;
-  padding: 3px;
-  gap: 2px;
-  border-radius: 999px;
-  background: var(--surface);
-  border: 1px solid var(--border-strong);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-}
-
+/* Track and selected state come from .segmented in styles.css. */
 .theme-option {
-  appearance: none;
   display: grid;
   place-items: center;
   width: 30px;
   height: 30px;
   padding: 0;
-  border: 0;
-  border-radius: 50%;
-  background: transparent;
-  color: var(--text-muted);
-  cursor: pointer;
-  transition:
-    background 140ms ease,
-    color 140ms ease;
-}
-
-.theme-option:hover {
-  color: var(--text);
-}
-
-.theme-option[data-pressed] {
-  background: var(--control-on);
-  color: var(--control-on-text);
-  box-shadow: var(--shadow);
 }
 
 /* Heavier strokes on the selected icon, so the state isn't carried by color

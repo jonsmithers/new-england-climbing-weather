@@ -44,7 +44,7 @@ export function ThemeToggle() {
   const [pref, setPref] = useThemePreference();
   return (
     <ToggleGroup
-      className="theme-toggle"
+      className="segmented"
       value={[pref]}
       onValueChange={(values) => {
         const next = values[values.length - 1] as ThemePreference | undefined;
@@ -56,7 +56,7 @@ export function ThemeToggle() {
         <Toggle
           key={opt.value}
           value={opt.value}
-          className="theme-option"
+          className="segmented-option theme-option"
           aria-label={opt.label}
           title={opt.label}
         >

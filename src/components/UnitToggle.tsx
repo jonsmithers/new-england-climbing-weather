@@ -44,7 +44,7 @@ export function PrecipUnitToggle() {
   );
 }
 
-// Same pill-shaped segmented control as the ThemeToggle, with text options.
+// Shared .segmented control (styles.css), with text options.
 function UnitToggle<T extends string>({
   options,
   value,
@@ -58,7 +58,7 @@ function UnitToggle<T extends string>({
 }) {
   return (
     <ToggleGroup
-      className="unit-toggle"
+      className="segmented"
       value={[value]}
       onValueChange={(values) => {
         // Pressing the active option would deselect it; keep one always on.
@@ -71,7 +71,7 @@ function UnitToggle<T extends string>({
         <Toggle
           key={opt.value}
           value={opt.value}
-          className="unit-option"
+          className="segmented-option unit-option"
           aria-label={opt.label}
           title={opt.label}
         >

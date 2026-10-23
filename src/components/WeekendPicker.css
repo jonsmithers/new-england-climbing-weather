@@ -1,55 +1,33 @@
+/* Track and selected state come from .segmented in styles.css; this sets the
+   larger size and the two-line label. */
 .weekend-picker {
-  display: inline-flex;
-  padding: 4px;
-  gap: 2px;
-  border-radius: 16px;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  --segmented-pad: 4px;
+  --segmented-radius: 16px;
+  --segmented-option-radius: 12px;
 }
 
 .weekend-option {
-  appearance: none;
   display: inline-flex;
   flex-direction: column;
   align-items: flex-start;
   gap: 3px;
-  padding: 0.5rem 1rem;
-  border: 0;
-  border-radius: 12px;
-  background: transparent;
-  color: var(--text-muted);
-  cursor: pointer;
-  transition:
-    background 160ms ease,
-    color 160ms ease,
-    box-shadow 160ms ease;
-}
-
-.weekend-option:hover {
-  color: var(--text);
-}
-
-.weekend-option[data-pressed] {
-  background: var(--surface-solid);
-  color: var(--text);
-  box-shadow: var(--shadow-lg);
+  /* 1.5px less than the visual padding to make room for the reserved border. */
+  padding: calc(0.5rem - 1.5px) calc(1rem - 1.5px);
 }
 
 .weekend-label {
   font-size: 0.86rem;
-  font-weight: 600;
   line-height: 1;
 }
 
 .weekend-range {
   font-size: 0.74rem;
+  font-weight: 500;
   color: var(--text-muted);
   font-variant-numeric: tabular-nums;
   line-height: 1;
 }
 
 .weekend-option[data-pressed] .weekend-range {
-  color: var(--accent);
+  color: var(--control-on-accent);
 }

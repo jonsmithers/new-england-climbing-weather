@@ -29,11 +29,13 @@
   --accent-soft: light-dark(rgb(232 89 42 / 0.12), rgb(255 138 92 / 0.16));
   --focus: light-dark(#2f6fed, #7aa7ff);
 
-  /* Segmented controls (header toggles). The selected segment is an inverted
-     fill (dark on light, light on dark) so it reads at a glance: >13:1
-     against the track in both themes, where a white-on-white raise was ~1:1. */
-  --control-on: var(--text);
-  --control-on-text: var(--surface-solid);
+  /* Segmented controls (.segmented, below). The selected segment is a pale
+     accent tint with an accent border: the border is ~3.3:1 (light) and
+     ~4.3:1 (dark) against the track, clear without a black/white inversion.
+     --control-on-accent is accent text on that fill (>=4.5:1). */
+  --control-on: light-dark(#fce2d6, #3f2c2d);
+  --control-on-border: light-dark(#e8592a, #c8653f);
+  --control-on-accent: light-dark(#b23f15, #ff8a5c);
 
   /* Per-day climbability (see dayCondition) */
   --dry: light-dark(#15924a, #4ade80);
@@ -126,6 +128,52 @@ button {
   to {
     background-position: -100% 0;
   }
+}
+
+/* Shared segmented control: the theme, unit and weekend toggles (Base UI
+   ToggleGroup + Toggle). Components add .segmented / .segmented-option next
+   to their own class and set only size: content layout in their own CSS, and
+   radius/padding through the custom properties below. */
+.segmented {
+  display: inline-flex;
+  padding: var(--segmented-pad, 3px);
+  gap: 2px;
+  border-radius: var(--segmented-radius, 999px);
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.segmented-option {
+  appearance: none;
+  /* Always reserve the border so selecting a segment doesn't shift layout. */
+  border: 1.5px solid transparent;
+  border-radius: var(--segmented-option-radius, 999px);
+  background: transparent;
+  color: var(--text-muted);
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+  transition:
+    background 140ms ease,
+    border-color 140ms ease,
+    color 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.segmented-option:hover {
+  color: var(--text);
+}
+
+/* The weight change is the non-color cue (icons get heavier strokes in
+   ThemeToggle.css). */
+.segmented-option[data-pressed] {
+  background: var(--control-on);
+  border-color: var(--control-on-border);
+  color: var(--text);
+  font-weight: 700;
+  box-shadow: var(--shadow);
 }
 
 .tooltip-popup {
