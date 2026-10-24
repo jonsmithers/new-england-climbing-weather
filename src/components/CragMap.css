@@ -1,0 +1,381 @@
+/* Map page of the overview pager. Loaded with the lazy CragMap chunk. The
+   page fills the pager's row; the min-height (kept in sync with
+   .pages-map-skeleton in Overview.css) is about the heatmap's height, so the
+   panel doesn't change size when the map is the only page rendered yet. */
+.crag-map-page {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  height: 100%;
+  min-height: 26rem;
+}
+
+@media (max-width: 520px) {
+  .crag-map-page {
+    min-height: 28.25rem;
+  }
+}
+
+.crag-map {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  background: var(--surface-sunken);
+  isolation: isolate;
+}
+
+/* Absolute so the canvas has a definite size for pigeon to measure. Pigeon
+   puts touch-action: none on its container, so a drag here pans the map
+   instead of swiping the pager track. */
+.crag-map-canvas {
+  position: absolute;
+  inset: 0;
+  touch-action: none;
+}
+
+/* Pigeon's container has an inline gray background; use the token. */
+.crag-map-canvas > div {
+  background: var(--surface-sunken) !important;
+}
+
+/* OSM has no dark raster style: invert the tiles and rotate the hue back so
+   water stays blue, then soften. Only the tile layer is filtered; pins and
+   controls are drawn from tokens. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) .crag-map .pigeon-tiles {
+    filter: invert(1) hue-rotate(180deg) brightness(0.85) contrast(0.9) saturate(0.5);
+  }
+}
+
+:root[data-theme='dark'] .crag-map .pigeon-tiles {
+  filter: invert(1) hue-rotate(180deg) brightness(0.85) contrast(0.9) saturate(0.5);
+}
+
+.crag-map-pins {
+  position: absolute;
+  inset: 0;
+}
+
+/* Pins */
+
+.crag-map-group,
+.crag-map-origin {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  transform: translate(-50%, -50%);
+}
+
+.crag-map-group {
+  gap: 2px;
+}
+
+.crag-map-pin {
+  --pin: var(--unknown);
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  height: 24px;
+  min-width: 36px;
+  padding: 0 6px 0 5px;
+  border-radius: 999px;
+  border: 1.5px solid var(--pin);
+  background: var(--surface-solid);
+  color: var(--text);
+  box-shadow: var(--shadow-lg);
+  font-family: var(--font-display);
+  font-size: 0.78rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    transform 120ms var(--ease-out),
+    box-shadow 120ms ease;
+}
+
+.crag-map-pin:hover {
+  transform: scale(1.08);
+}
+
+/* Selected: thicker ring in the text color plus a lift (shape, not just
+   color). */
+.crag-map-pin[aria-pressed='true'] {
+  transform: scale(1.15);
+  border-width: 2.5px;
+  border-color: var(--text);
+  z-index: 1;
+}
+
+.crag-map-pin-dry,
+.crag-map-glyph-dry {
+  --pin: var(--dry);
+}
+
+.crag-map-pin-damp,
+.crag-map-glyph-damp {
+  --pin: var(--damp);
+}
+
+.crag-map-pin-wet,
+.crag-map-glyph-wet {
+  --pin: var(--wet);
+}
+
+.crag-map-pin-unknown,
+.crag-map-glyph-unknown {
+  --pin: var(--unknown);
+}
+
+.crag-map-glyph {
+  flex: none;
+  overflow: visible;
+}
+
+.crag-map-glyph-ring {
+  fill: none;
+  stroke: var(--pin);
+  stroke-width: 1.8;
+}
+
+.crag-map-glyph-unknown .crag-map-glyph-ring {
+  stroke-dasharray: 2 1.6;
+}
+
+.crag-map-glyph-fill {
+  fill: var(--pin);
+}
+
+.crag-map-home {
+  flex: none;
+  fill: var(--accent);
+  stroke: var(--surface-solid);
+  stroke-width: 1.2;
+  stroke-linejoin: round;
+}
+
+.crag-map-origin .crag-map-home {
+  width: 22px;
+  height: 22px;
+  filter: drop-shadow(0 1px 1px var(--shadow-far));
+}
+
+.crag-map-label {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  padding: 0 5px;
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.7rem;
+  font-weight: 600;
+  line-height: 16px;
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: var(--shadow);
+}
+
+.crag-map-label-right {
+  left: calc(100% + 3px);
+}
+
+.crag-map-label-left {
+  right: calc(100% + 3px);
+}
+
+/* Controls */
+
+.crag-map-controls {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.crag-map-btn,
+.crag-map-card-close {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-strong);
+  background: var(--surface-solid);
+  color: var(--text);
+  box-shadow: var(--shadow);
+  cursor: pointer;
+}
+
+.crag-map-btn:hover,
+.crag-map-card-close:hover {
+  background: var(--surface-hover);
+}
+
+.crag-map-btn svg,
+.crag-map-card-close svg,
+.crag-map-card-link svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Selected crag card, pinned to the bottom of the frame rather than to the
+   pin, so it never clips at the map's edge. */
+.crag-map-card {
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  bottom: 24px;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  max-width: 22rem;
+  padding: 0.6rem 0.7rem 0.65rem;
+  border-radius: var(--radius);
+  border: 1px solid var(--border-strong);
+  background: var(--surface-solid);
+  box-shadow: var(--shadow-lg);
+  font-size: 0.8rem;
+}
+
+.crag-map-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.crag-map-card-title {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+
+.crag-map-card-rank {
+  color: var(--accent);
+}
+
+.crag-map-card-region {
+  font-family: var(--font);
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--text-faint);
+}
+
+.crag-map-card-close {
+  width: 26px;
+  height: 26px;
+  flex: none;
+  box-shadow: none;
+}
+
+.crag-map-card-verdict {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  font-weight: 600;
+  color: var(--pin);
+}
+
+.crag-map-card-verdict-dry {
+  --pin: var(--dry);
+}
+
+.crag-map-card-verdict-damp {
+  --pin: var(--damp);
+}
+
+.crag-map-card-verdict-wet {
+  --pin: var(--wet);
+}
+
+.crag-map-card-verdict-unknown {
+  --pin: var(--unknown);
+}
+
+.crag-map-card-of,
+.crag-map-card-drive {
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.crag-map-card-link {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-top: 0.15rem;
+  color: var(--accent);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.crag-map-card-link:hover {
+  text-decoration: underline;
+}
+
+/* Required OSM attribution: always visible, bottom-right of the map. */
+.crag-map-attribution {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  z-index: 1;
+  padding: 1px 6px;
+  border-top-left-radius: 6px;
+  background: var(--surface);
+  color: var(--text-muted);
+  font-size: 0.66rem;
+  line-height: 1.5;
+}
+
+.crag-map-attribution a {
+  color: inherit;
+}
+
+/* Legend, styled like the heatmap's. */
+.crag-map-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.9rem;
+  padding: 0.5rem 0.3rem 0;
+  border-top: 1px solid var(--border);
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.crag-map-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.crag-map-legend .crag-map-home {
+  width: 13px;
+  height: 13px;
+  stroke: none;
+}
+
+.crag-map-legend-note {
+  margin-left: auto;
+  color: var(--text-faint);
+}

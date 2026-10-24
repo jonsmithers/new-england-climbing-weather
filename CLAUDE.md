@@ -13,7 +13,7 @@ There is no test runner and no linter/formatter configured. `typecheck` is the o
 
 ## What this is
 
-A static, single-page React app (React 19 + Vite + TypeScript) that shows a weekend weather forecast for a curated list of New England climbing crags, one card per crag. **No backend, no database, no auth, no API keys** — the browser calls free, CORS-enabled APIs directly (two for weather, plus routing and geocoding for drive times). Styling is plain CSS (one `.css` file per component); unstyled accessible primitives come from `@base-ui/react`.
+A static, single-page React app (React 19 + Vite + TypeScript) that shows a weekend weather forecast for a curated list of New England climbing crags, one card per crag. **No backend, no database, no auth, no API keys** — the browser calls free, CORS-enabled APIs directly (two for weather, plus routing and geocoding for drive times, plus keyless OpenStreetMap tiles for the map). Styling is plain CSS (one `.css` file per component); unstyled accessible primitives come from `@base-ui/react`.
 
 ## Architecture
 
@@ -28,7 +28,11 @@ Drive times (separate from the weather data):
 - **Photon (`photon.komoot.io`)**: `src/api/geocode.ts`, the place search in `OriginPicker`. It searches **on submit only**, never per keystroke (fair-use policy).
 - The origin is the `ORIGIN` preference in `src/lib/origin.ts` (default: Davis Square, Somerville). Attribution for OSRM/OSM is required and lives in the `RefreshFooter` credits.
 
-Data flow: `LOCATIONS` (`src/locations.ts`) → `useCragForecasts` (`src/hooks/`, called from `App`) fetches NWS for every crag in parallel and keeps a separate `loading | ok | error` state for each crag (one bad fetch never breaks the page) → `App` ranks crags best-first by `viabilityScore` (penalty points, lower is better: rain, prior-day "wet rock", temperature outside a comfort band, and drive time beyond an hour; formula in ARCHITECTURE.md) and passes them to `Overview` (best-bet spotlight + a swipeable Rain | Temperature panel whose pages are a data list, `PAGES`) and to one `LocationCard` per crag. `SummitPanel` fetches Open-Meteo itself when `location.summit` is set. Raw API responses are normalized into a shared `WeekendForecast` / `DaySummary[]` shape by `src/lib/forecast.ts` (`summarizeWeekend` for NWS, `summarizeSummitWeekend` for Open-Meteo).
+Map (the overview's third page):
+
+- **`src/components/CragMap.tsx`** (`pigeon-maps` + OSM's `tile.openstreetmap.org` raster tiles) is imported only through `React.lazy` in `Overview.tsx`'s `PAGES`. Keep it that way: importing CragMap, pigeon-maps or CragMap.css from anything in the main bundle would pull the map into the initial load. Check `vite build` output for a separate `CragMap-*.js` chunk. The on-map "© OpenStreetMap contributors" link is required by the tile policy; don't hide it. Dark mode is a CSS filter on `.pigeon-tiles` (OSM has no dark style). Pins get rank + verdict from the ranked `OverviewRow`s and drive time from their optional `drive` field.
+
+Data flow: `LOCATIONS` (`src/locations.ts`) → `useCragForecasts` (`src/hooks/`, called from `App`) fetches NWS for every crag in parallel and keeps a separate `loading | ok | error` state for each crag (one bad fetch never breaks the page) → `App` ranks crags best-first by `viabilityScore` (penalty points, lower is better: rain, prior-day "wet rock", temperature outside a comfort band, and drive time beyond an hour; formula in ARCHITECTURE.md) and passes them to `Overview` (best-bet spotlight + a swipeable Rain | Temperature | Map panel whose pages are a data list, `PAGES`) and to one `LocationCard` per crag. `SummitPanel` fetches Open-Meteo itself when `location.summit` is set. Raw API responses are normalized into a shared `WeekendForecast` / `DaySummary[]` shape by `src/lib/forecast.ts` (`summarizeWeekend` for NWS, `summarizeSummitWeekend` for Open-Meteo).
 
 ### The "weekend" concept (`src/lib/weekend.ts`)
 

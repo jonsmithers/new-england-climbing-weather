@@ -1,6 +1,8 @@
 import {
   Fragment,
   type KeyboardEvent,
+  lazy,
+  Suspense,
   type ReactNode,
   useEffect,
   useLayoutEffect,
@@ -21,6 +23,7 @@ import {
 import { definePreference, usePreference } from '../lib/preferences';
 import { formatTemp, useTempUnit } from '../lib/units';
 import type { ForecastState } from '../hooks/useCragForecasts';
+import type { Drive } from '../api/routing';
 import { WeatherIcon, iconFor } from './WeatherIcon';
 import { TempChart } from './TempChart';
 import './Overview.css';
@@ -28,7 +31,14 @@ import './Overview.css';
 export type OverviewRow = {
   location: Location;
   state: ForecastState | undefined;
+  // Drive time from the origin, for the Map page's crag card. Absent while
+  // routing loads or if it failed; null if there's no route.
+  drive?: Drive | null;
 };
+
+// Separate chunk (pigeon-maps + the map's code and CSS), fetched the first
+// time the Map page renders.
+const CragMap = lazy(() => import('./CragMap'));
 
 type Props = {
   // Already sorted best-first by viability score.
@@ -135,6 +145,15 @@ export type OverviewPage = {
 const PAGES = [
   { id: 'rain', label: 'Rain', render: (props) => <RainMatrix {...props} /> },
   { id: 'temp', label: 'Temperature', render: (props) => <TempMatrix {...props} /> },
+  {
+    id: 'map',
+    label: 'Map',
+    render: ({ rows }) => (
+      <Suspense fallback={<div className="skeleton pages-map-skeleton" aria-busy="true" />}>
+        <CragMap rows={rows} />
+      </Suspense>
+    ),
+  },
 ] as const satisfies readonly OverviewPage[];
 
 type PageId = (typeof PAGES)[number]['id'];

@@ -257,6 +257,20 @@ a.best:hover {
   scroll-snap-stop: always;
 }
 
+/* Stand-in while the lazy Map page chunk loads. Same size as the map page
+   (.crag-map-page in CragMap.css). */
+.pages-map-skeleton {
+  height: 100%;
+  min-height: 26rem;
+  border-radius: var(--radius);
+}
+
+@media (max-width: 520px) {
+  .pages-map-skeleton {
+    min-height: 28.25rem;
+  }
+}
+
 .matrix {
   display: flex;
   flex-direction: column;
