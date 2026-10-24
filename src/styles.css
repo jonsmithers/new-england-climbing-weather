@@ -44,6 +44,9 @@
   --damp-bg: light-dark(#fdf0d2, rgb(251 191 36 / 0.14));
   --wet: light-dark(#d1294f, #fb7185);
   --wet-bg: light-dark(#fde2e8, rgb(251 113 133 / 0.15));
+  /* Temperature page tints (Overview), paired with --temp-cool / --temp-warm */
+  --cold-bg: light-dark(#dfeafd, rgb(96 165 250 / 0.15));
+  --hot-bg: light-dark(#fde7d8, rgb(251 146 60 / 0.15));
   --unknown: light-dark(#8593a6, #66758b);
   --unknown-bg: light-dark(#eef1f5, rgb(255 255 255 / 0.05));
 
@@ -131,7 +134,8 @@ button {
 }
 
 /* Shared segmented control: the theme, unit and weekend toggles (Base UI
-   ToggleGroup + Toggle). Components add .segmented / .segmented-option next
+   ToggleGroup + Toggle) and the overview's Rain | Temperature tabs (role=tab,
+   selected via aria-selected). Components add .segmented / .segmented-option next
    to their own class and set only size: content layout in their own CSS, and
    radius/padding through the custom properties below. */
 .segmented {
@@ -168,7 +172,8 @@ button {
 
 /* The weight change is the non-color cue (icons get heavier strokes in
    ThemeToggle.css). */
-.segmented-option[data-pressed] {
+.segmented-option[data-pressed],
+.segmented-option[aria-selected='true'] {
   background: var(--control-on);
   border-color: var(--control-on-border);
   color: var(--text);

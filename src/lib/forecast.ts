@@ -103,6 +103,31 @@ function tempPoints(day: DaySummary): number {
   return 0;
 }
 
+// Per-day temperature compatibility for display, derived from the same band
+// and slopes as the score (no second definition). level 1 = outside the
+// comfort band; level 2 = at least STRONG_TEMP_POINTS of penalty, i.e. a high
+// of 40°F or below, or 85°F or above (FAR_BAND_F). null when there's no high.
+export type TempComfort = { side: 'cold' | 'hot' | null; level: 0 | 1 | 2; points: number };
+
+const STRONG_TEMP_POINTS = 0.25;
+
+// Where level 2 starts, in °F (40° / 85° with the current weights).
+export const FAR_BAND_F = {
+  low: COMFORT_LOW_F - STRONG_TEMP_POINTS / COLD_PER_F,
+  high: COMFORT_HIGH_F + STRONG_TEMP_POINTS / HOT_PER_F,
+} as const;
+
+export function tempComfort(day: DaySummary): TempComfort | null {
+  if (day.high == null) return null;
+  const points = tempPoints(day);
+  if (points === 0) return { side: null, level: 0, points };
+  return {
+    side: day.high < COMFORT_LOW_F ? 'cold' : 'hot',
+    level: points >= STRONG_TEMP_POINTS ? 2 : 1,
+    points,
+  };
+}
+
 // `driveSeconds` is null/undefined when routing hasn't answered or failed;
 // that contributes 0 rather than guessing, so a routing outage leaves the
 // weather-only order intact.

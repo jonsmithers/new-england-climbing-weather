@@ -78,7 +78,11 @@ All requests fan out in parallel per render. `useCragForecasts` gives each crag 
 Top to bottom:
 
 1. **Header** — scenic hero (layered ridge silhouettes), weekend picker, an origin picker for drive times (search a place, pick a result; default Davis Square, Somerville), °F/°C and in/mm unit toggles, and a light / system / dark theme toggle.
-2. **Overview** — a "best bet" spotlight for the top-ranked crag, next to a crag × day heatmap (chance of rain, tinted by dry / damp / wet). Rows link to the matching card.
+2. **Overview** — a "best bet" spotlight for the top-ranked crag, next to a paged crag × day panel. Both pages use the same ranked row order, and rows link to the matching card.
+   - **Rain:** chance of rain, tinted dry / damp / wet.
+   - **Temperature:** each day's high (via `formatTemp`), tinted cold / comfy / hot by `tempComfort` (`src/lib/forecast.ts`, the score's own comfort band). ▼/▲ mark cold/hot, and a ring marks "far out" (`FAR_BAND_F`, 40°F / 85°F). A day with no daytime high (Friday once its daytime period has passed) shows "—" rather than the night low, which would always read as cold.
+   - **Switching:** the pages sit in a native horizontal scroll-snap track, so touch users swipe. A Rain | Temperature tab switch (shared `.segmented` style, WAI-ARIA tabs with arrow keys) and page dots stay in sync with the scroll. The off-screen page is `inert` and `aria-hidden`, and the choice is remembered (`pref:overviewPage`).
+   - **Adding a page:** pages are one data list (`PAGES` in `Overview.tsx`: id, label, render). A page renders on first visit, so a page can `React.lazy` its content. All pages share one grid row, so the panel keeps a constant height across pages.
 3. **Cards**, sorted best-first by `viabilityScore` (see below).
 
 ### Card layout
