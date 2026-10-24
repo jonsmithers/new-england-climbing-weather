@@ -56,7 +56,7 @@ All requests fan out in parallel per render. `useCragForecasts` gives each crag 
 
 ### NWS request sequence
 
-1. `GET /points/{lat},{lon}` — returns metadata including a `forecast` URL plus the grid coords (`gridId`, `gridX`, `gridY`)
+1. `GET /points/{lat},{lon}` — returns metadata including a `forecast` URL plus the grid coords (`gridId`, `gridX`, `gridY`). `gridId` is also the forecast office, kept as `office` for the card's Area Forecast Discussion link
 2. Then, in parallel:
    - `GET <forecast>` — returns ~14 periods (7 days × day/night) with `temperature`, `isDaytime`, `probabilityOfPrecipitation`
    - `GET /gridpoints/{gridId}/{x},{y}` — quantitative precipitation (QPF) in mm. `parsePrecip` expands multi-hour QPF entries (PT1H, PT6H, …) into flat per-hour readings, which are then summed per day.
@@ -97,7 +97,7 @@ Top to bottom:
 3. **Hourly precip strip** — one 96-hour timeline whose bars sit under each day's tile. Absolute sqrt scale (not per-card), so bar heights compare across crags.
 4. **Temp band chart** — smooth hi/lo curves on the same 4-column grid, hand-rolled SVG, no chart library.
 5. **Summit panel** — collapsed by default, only renders when `summit` is configured.
-6. Footer links to weather.gov (48-hour hourly graph starting 8am Saturday) and meteoblue (week view, Saturday's tab open). Both use the crag's base coordinates; weather.gov's graph can't reach past ~4 days out, so further weekends clamp to its last window. Param details live next to the URL builders in `LocationCard.tsx`. White Mountains crags (Cannon, Cathedral, Whitehorse) opt in via `extraLinks` to a third link, "MWOBS Higher Summits": Mount Washington Observatory's regional summit forecast, labeled as such because it isn't crag-specific. The links row wraps on narrow screens.
+6. Footer links, in order: weather.gov (48-hour hourly graph starting 8am Saturday), meteoblue (week view, Saturday's tab open), Clear Outside (7-day hourly cloud/precip grid from today), and "NWS discussion" (the forecast office's Area Forecast Discussion; the office is the `gridId` from the `/points` call already made, so the link appears once that crag's forecast loads and is omitted on error). The first three use the crag's base coordinates; weather.gov's graph can't reach past ~4 days out, so further weekends clamp to its last window. Param details live next to the URL builders in `LocationCard.tsx`. White Mountains crags (Cannon, Cathedral, Whitehorse) opt in via `extraLinks` to a fifth link, "MWOBS Higher Summits": Mount Washington Observatory's regional summit forecast, labeled as such because it isn't crag-specific. The links row wraps on narrow screens.
 
 ## Viability score
 

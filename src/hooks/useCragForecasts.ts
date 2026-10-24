@@ -6,7 +6,8 @@ import { summarizeWeekend, type WeekendForecast } from '../lib/forecast';
 
 export type ForecastState =
   | { status: 'loading' }
-  | { status: 'ok'; data: WeekendForecast }
+  // `office` is the NWS forecast office (e.g. GYX), for the AFD link.
+  | { status: 'ok'; data: WeekendForecast; office: string }
   | { status: 'error'; message: string };
 
 // Fetches the NWS forecast for every crag in parallel. Each crag resolves into
@@ -28,6 +29,7 @@ export function useCragForecasts(
         .then((forecast): ForecastState => ({
           status: 'ok',
           data: summarizeWeekend(forecast, weekend),
+          office: forecast.office,
         }))
         .catch((err: unknown): ForecastState => ({
           status: 'error',

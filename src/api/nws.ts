@@ -22,6 +22,9 @@ export type HourPrecip = {
 export type NwsForecast = {
   periods: ForecastPeriod[];
   precipMm: HourPrecip[];
+  // Forecast office (WFO) for this point, e.g. GYX / BOX / ALY: the
+  // `gridId` from /points. Used for the card's Area Forecast Discussion link.
+  office: string;
 };
 
 type GeoJson = {
@@ -43,7 +46,9 @@ export async function fetchNwsForecast(
 ): Promise<NwsForecast> {
   const key = `${CACHE_PREFIX.nws}${lat.toFixed(4)},${lon.toFixed(4)}`;
   const cached = readCache<NwsForecast>(key);
-  if (cached) return cached;
+  // Entries cached before `office` existed lack it; refetch rather than
+  // leave the card without its discussion link for the rest of the TTL.
+  if (cached?.office) return cached;
 
   const points = await getJson(`${BASE}/points/${lat},${lon}`);
   const { forecast, gridId, gridX, gridY } = points.properties;
@@ -59,6 +64,7 @@ export async function fetchNwsForecast(
   const result: NwsForecast = {
     periods: forecastRes.properties.periods ?? [],
     precipMm: parsePrecip(gridRes.properties.quantitativePrecipitation),
+    office: gridId,
   };
   writeCache(key, result);
   return result;

@@ -132,6 +132,27 @@ export function LocationCard({
         >
           meteoblue <ExternalIcon />
         </a>
+        <a
+          className="card-link"
+          href={buildClearOutsideUrl(location)}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Clear Outside <ExternalIcon />
+        </a>
+        {/* The office comes from the NWS fetch, so there's no link until it
+            lands (or if it failed) rather than a guessed office. */}
+        {state.status === 'ok' && (
+          <a
+            className="card-link"
+            href={buildAfdUrl(state.office)}
+            title={`NWS ${state.office} Area Forecast Discussion: the forecast office's written reasoning for its region, not specific to this crag`}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            NWS discussion <ExternalIcon />
+          </a>
+        )}
         {location.extraLinks?.map((id) => {
           const link = EXTRA_LINKS[id];
           return (
@@ -311,6 +332,40 @@ const EXTRA_LINKS: Record<ExtraLinkId, { label: string; title: string; href: str
     href: 'https://mountwashington.org/weather/higher-summits-forecast/',
   },
 };
+
+// Clear Outside's forecast page, e.g. /forecast/44.07/-71.18: one hourly grid
+// covering 7 days from today (low/mid/high cloud, precip, wind, dew point,
+// humidity, frost). The path takes signed decimal lat / lon. The site rounds
+// them to 2 decimals (~1 km) anyway, so we send that short form up front.
+// There's no date param: the grid always starts today, so most of "next
+// weekend" falls past its end.
+function buildClearOutsideUrl(location: Location): string {
+  return `https://clearoutside.com/forecast/${location.lat.toFixed(2)}/${location.lon.toFixed(2)}`;
+}
+
+// The NWS Area Forecast Discussion: the forecast office's written reasoning
+// (timing, confidence, model disagreement), reissued a few times a day. One
+// per office, so every crag served by an office gets the same page.
+//
+// Param reference:
+//   site=NWS     works for every office
+//   issuedby     the office id, e.g. GYX (Gray ME), BOX (Boston/Norton MA),
+//                ALY (Albany NY)
+//   product=AFD  Area Forecast Discussion
+//   format=CI    plain text; `txt` renders the same product text
+//   version=1    latest issuance (2 = the one before, ...)
+//   glossary=1   links jargon terms to their glossary definitions
+function buildAfdUrl(office: string): string {
+  const params = new URLSearchParams({
+    site: 'NWS',
+    issuedby: office,
+    product: 'AFD',
+    format: 'CI',
+    version: '1',
+    glossary: '1',
+  });
+  return `https://forecast.weather.gov/product.php?${params.toString()}`;
+}
 
 // meteoblue's week view, e.g. /en/weather/week/44.1581N-71.6989E?day=2.
 //
