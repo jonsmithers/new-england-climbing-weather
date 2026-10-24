@@ -78,7 +78,7 @@ export function App() {
 
         <div className="section-head">
           <h2 className="section-title">Crag by crag</h2>
-          <span className="section-note">Hover a day for conditions and wind</span>
+          <span className="section-note">Tap or hover a day for conditions and wind</span>
         </div>
         <div className="grid">
           {ranked.map(({ location, state, score, drive }, i) => (

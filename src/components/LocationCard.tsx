@@ -1,5 +1,5 @@
 import type { CSSProperties } from 'react';
-import { Tooltip } from '@base-ui/react/tooltip';
+import { Popover } from '@base-ui/react/popover';
 import type { ExtraLinkId, Location } from '../locations';
 import { type Weekend, dayLabel, formatMonthDay } from '../lib/weekend';
 import {
@@ -147,16 +147,23 @@ export function LocationCard({
   );
 }
 
+// The day cells and the info icon use Popover rather than Tooltip: Base UI's
+// Tooltip deliberately ignores touch, so on a phone it never opened. A popover
+// opens on hover (same 150ms delay as before), toggles on tap/click and on
+// Enter/Space, and closes on an outside tap or Escape.
+const INFO_TRIGGER_PROPS = { openOnHover: true, delay: 150 } as const;
+
 function DayCell({ day }: { day: DaySummary }) {
   const cond = dayCondition(day);
   const [precipUnit] = usePrecipUnit();
   const pop = day.popMax == null ? '—' : `${Math.round(day.popMax)}%`;
   const precip = formatPrecip(day.precipInches, precipUnit);
   return (
-    <Tooltip.Root>
-      <Tooltip.Trigger
-        delay={150}
-        render={<div tabIndex={0} />}
+    <Popover.Root>
+      <Popover.Trigger
+        {...INFO_TRIGGER_PROPS}
+        nativeButton={false}
+        render={<div />}
         className={`day day-${cond}`}
         aria-label={`${dayLabel(day.date)}: ${CONDITION_LABEL[cond]}, ${pop} chance of rain, ${precip}`}
       >
@@ -169,20 +176,23 @@ function DayCell({ day }: { day: DaySummary }) {
         />
         <span className="day-pop">{pop}</span>
         <span className="day-inches">{precip}</span>
-      </Tooltip.Trigger>
-      <Tooltip.Portal>
-        <Tooltip.Positioner side="top" sideOffset={8}>
-          <Tooltip.Popup className="tooltip-popup day-tip">
+      </Popover.Trigger>
+      <Popover.Portal>
+        <Popover.Positioner side="top" sideOffset={8}>
+          <Popover.Popup
+            className="tooltip-popup day-tip"
+            aria-label={`${dayLabel(day.date)} conditions`}
+          >
             <div className="day-tip-head">
               <span className={`day-tip-dot day-tip-${cond}`} />
               {CONDITION_LABEL[cond]}
             </div>
             {day.conditions && <div>{day.conditions}</div>}
             {day.wind && <div className="day-tip-muted">Wind {day.wind}</div>}
-          </Tooltip.Popup>
-        </Tooltip.Positioner>
-      </Tooltip.Portal>
-    </Tooltip.Root>
+          </Popover.Popup>
+        </Popover.Positioner>
+      </Popover.Portal>
+    </Popover.Root>
   );
 }
 
@@ -226,7 +236,7 @@ function ExternalIcon() {
   );
 }
 
-// Bottom-right "info" icon that reveals extra per-card details on hover/focus:
+// Bottom-right "info" icon that reveals extra per-card details on hover, tap or Enter:
 // the per-factor breakdown of the viability score used to order the cards.
 function CardInfo({ score, hasDrive }: { score: Viability | null; hasDrive: boolean }) {
   const [unit] = useTempUnit();
@@ -240,17 +250,21 @@ function CardInfo({ score, hasDrive }: { score: Viability | null; hasDrive: bool
       ]
     : [];
   return (
-    <Tooltip.Root>
-      <Tooltip.Trigger delay={150} className="card-info-trigger" aria-label="Card details">
+    <Popover.Root>
+      <Popover.Trigger
+        {...INFO_TRIGGER_PROPS}
+        className="card-info-trigger"
+        aria-label="Score breakdown"
+      >
         <svg viewBox="0 0 16 16" width="15" height="15" aria-hidden>
           <circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" />
           <circle cx="8" cy="4.5" r="1" fill="currentColor" stroke="none" />
           <rect x="7.25" y="6.75" width="1.5" height="5" fill="currentColor" stroke="none" />
         </svg>
-      </Tooltip.Trigger>
-      <Tooltip.Portal>
-        <Tooltip.Positioner side="top" align="end" sideOffset={6}>
-          <Tooltip.Popup className="tooltip-popup">
+      </Popover.Trigger>
+      <Popover.Portal>
+        <Popover.Positioner side="top" align="end" sideOffset={6}>
+          <Popover.Popup className="tooltip-popup" aria-label="Viability score breakdown">
             {rows.map(([label, value]) => (
               <div key={label} className="card-info-row">
                 <span className="card-info-label">{label}</span>
@@ -268,10 +282,10 @@ function CardInfo({ score, hasDrive }: { score: Viability | null; hasDrive: bool
             <div className="card-info-hint">
               Penalty points: lower is better. Sat/Sun count triple.
             </div>
-          </Tooltip.Popup>
-        </Tooltip.Positioner>
-      </Tooltip.Portal>
-    </Tooltip.Root>
+          </Popover.Popup>
+        </Popover.Positioner>
+      </Popover.Portal>
+    </Popover.Root>
   );
 }
 

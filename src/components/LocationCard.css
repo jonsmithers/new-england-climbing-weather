@@ -171,7 +171,7 @@
   padding: 0.55rem 0.2rem 0.5rem;
   border-radius: var(--radius);
   background: var(--day-bg);
-  cursor: default;
+  cursor: pointer;
   outline-offset: 1px;
   transition: transform 160ms var(--ease-out);
 }

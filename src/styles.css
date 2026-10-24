@@ -192,6 +192,13 @@ button {
     transform 120ms ease;
 }
 
+/* Popovers take focus when opened by keyboard or tap (so screen readers read
+   them); the popup itself needs no focus ring. */
+.tooltip-popup:focus,
+.tooltip-popup:focus-visible {
+  outline: none;
+}
+
 .tooltip-popup[data-starting-style],
 .tooltip-popup[data-ending-style] {
   opacity: 0;
