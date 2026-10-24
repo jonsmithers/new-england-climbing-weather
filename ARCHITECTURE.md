@@ -92,8 +92,8 @@ Top to bottom:
 
 ### Card layout
 
-1. Crag name, state, approximate drive time + distance from the origin (hidden if routing failed), a verdict pill ("3 of 4 days dry"), and its viability rank. The info icon in the card footer shows the score's per-factor breakdown.
-2. **Day tiles** (Fri–Mon) — weather icon from NWS `shortForecast`, max chance of rain, inches. Tinted by `dayCondition`: dry / damp / wet. Hover, tap, or press Enter on a tile for the forecast text and wind. The tiles and the score info icon use a Base UI `Popover` with `openOnHover`, not a `Tooltip`, because Tooltip ignores touch and so never opens on a phone.
+1. Crag name, state, approximate drive time + distance from the origin (hidden if routing failed), a verdict pill ("3 of 4 days dry"), and its viability rank. The rank badge is a button: hover, tap, or press Enter on it for the score's per-factor breakdown (why the card ranks where it does).
+2. **Day tiles** (Fri–Mon) — weather icon from NWS `shortForecast`, max chance of rain, inches. Tinted by `dayCondition`: dry / damp / wet. Hover, tap, or press Enter on a tile for the forecast text and wind. The tiles and the rank badge use a Base UI `Popover` with `openOnHover`, not a `Tooltip`, because Tooltip ignores touch and so never opens on a phone.
 3. **Hourly precip strip** — one 96-hour timeline whose bars sit under each day's tile. Absolute sqrt scale (not per-card), so bar heights compare across crags.
 4. **Temp band chart** — smooth hi/lo curves on the same 4-column grid, hand-rolled SVG, no chart library.
 5. **Summit panel** — collapsed by default, only renders when `summit` is configured.

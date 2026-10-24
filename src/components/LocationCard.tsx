@@ -26,6 +26,8 @@ type Props = {
   state: ForecastState | undefined;
   // 1-based position in the viability ordering; null until scored.
   rank: number | null;
+  // How many crags are ranked (for "Rank 3 of 12").
+  rankTotal: number;
   score: Viability | null;
   // Drive from the user's origin; undefined while loading or if routing failed.
   drive?: Drive | null;
@@ -46,6 +48,7 @@ export function LocationCard({
   weekend,
   state = { status: 'loading' },
   rank,
+  rankTotal,
   score,
   drive,
   refreshNonce,
@@ -76,9 +79,12 @@ export function LocationCard({
           ) : null}
         </div>
         {rank != null && (
-          <span className={`rank${rank === 1 ? ' rank-first' : ''}`} title="Rank by climbing viability">
-            {rank === 1 ? 'Best bet' : `#${rank}`}
-          </span>
+          <RankBreakdown
+            rank={rank}
+            total={rankTotal}
+            score={score}
+            hasDrive={drive != null}
+          />
         )}
       </header>
 
@@ -141,17 +147,16 @@ export function LocationCard({
             </a>
           );
         })}
-        <CardInfo score={score} hasDrive={drive != null} />
       </footer>
     </article>
   );
 }
 
-// The day cells and the info icon use Popover rather than Tooltip: Base UI's
+// The day cells and the rank badge use Popover rather than Tooltip: Base UI's
 // Tooltip deliberately ignores touch, so on a phone it never opened. A popover
-// opens on hover (same 150ms delay as before), toggles on tap/click and on
-// Enter/Space, and closes on an outside tap or Escape.
-const INFO_TRIGGER_PROPS = { openOnHover: true, delay: 150 } as const;
+// opens on hover (150ms delay), toggles on tap/click and on Enter/Space, and
+// closes on an outside tap or Escape.
+const POPOVER_TRIGGER_PROPS = { openOnHover: true, delay: 150 } as const;
 
 function DayCell({ day }: { day: DaySummary }) {
   const cond = dayCondition(day);
@@ -161,7 +166,7 @@ function DayCell({ day }: { day: DaySummary }) {
   return (
     <Popover.Root>
       <Popover.Trigger
-        {...INFO_TRIGGER_PROPS}
+        {...POPOVER_TRIGGER_PROPS}
         nativeButton={false}
         render={<div />}
         className={`day day-${cond}`}
@@ -236,9 +241,19 @@ function ExternalIcon() {
   );
 }
 
-// Bottom-right "info" icon that reveals extra per-card details on hover, tap or Enter:
-// the per-factor breakdown of the viability score used to order the cards.
-function CardInfo({ score, hasDrive }: { score: Viability | null; hasDrive: boolean }) {
+// The rank badge (top-right) is a button that opens the per-factor breakdown
+// of the viability score, i.e. why the card is ranked where it is.
+function RankBreakdown({
+  rank,
+  total,
+  score,
+  hasDrive,
+}: {
+  rank: number;
+  total: number;
+  score: Viability | null;
+  hasDrive: boolean;
+}) {
   const [unit] = useTempUnit();
   const band = `${formatTemp(COMFORT_BAND_F.low, unit)}–${formatTemp(COMFORT_BAND_F.high, unit, { withUnit: true })}`;
   const rows: [label: string, value: number | null][] = score
@@ -249,37 +264,32 @@ function CardInfo({ score, hasDrive }: { score: Viability | null; hasDrive: bool
         ['Drive (beyond 1 h)', hasDrive ? score.drive : null],
       ]
     : [];
+  const first = rank === 1;
   return (
     <Popover.Root>
       <Popover.Trigger
-        {...INFO_TRIGGER_PROPS}
-        className="card-info-trigger"
-        aria-label="Score breakdown"
+        {...POPOVER_TRIGGER_PROPS}
+        className={`rank${first ? ' rank-first' : ''}`}
+        aria-label={`${first ? 'Best bet, rank' : 'Rank'} ${rank} of ${total}: score breakdown`}
       >
-        <svg viewBox="0 0 16 16" width="15" height="15" aria-hidden>
-          <circle cx="8" cy="8" r="7" fill="none" stroke="currentColor" />
-          <circle cx="8" cy="4.5" r="1" fill="currentColor" stroke="none" />
-          <rect x="7.25" y="6.75" width="1.5" height="5" fill="currentColor" stroke="none" />
-        </svg>
+        {first ? 'Best bet' : `#${rank}`}
       </Popover.Trigger>
       <Popover.Portal>
-        <Popover.Positioner side="top" align="end" sideOffset={6}>
+        <Popover.Positioner side="bottom" align="end" sideOffset={6}>
           <Popover.Popup className="tooltip-popup" aria-label="Viability score breakdown">
             {rows.map(([label, value]) => (
-              <div key={label} className="card-info-row">
-                <span className="card-info-label">{label}</span>
-                <span className="card-info-value">
-                  {value == null ? '—' : value.toFixed(1)}
-                </span>
+              <div key={label} className="score-row">
+                <span className="score-label">{label}</span>
+                <span className="score-value">{value == null ? '—' : value.toFixed(1)}</span>
               </div>
             ))}
-            <div className="card-info-row card-info-total">
-              <span className="card-info-label">Viability score</span>
-              <span className="card-info-value">
+            <div className="score-row score-total">
+              <span className="score-label">Viability score</span>
+              <span className="score-value">
                 {score == null ? '—' : score.total.toFixed(1)}
               </span>
             </div>
-            <div className="card-info-hint">
+            <div className="score-hint">
               Penalty points: lower is better. Sat/Sun count triple.
             </div>
           </Popover.Popup>

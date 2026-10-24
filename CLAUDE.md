@@ -55,7 +55,7 @@ Internal data is always °F and inches. The °F/°C and in/mm header toggles (`s
 ## Common changes
 
 - **Add/remove a crag:** edit `LOCATIONS` in `src/locations.ts`. Each crag needs a `region` (state abbreviation). Add an optional `summit: { lat, lon, elevationMeters, name? }` to enable the summit panel for that crag.
-- **Tune the ranking:** the weights are named constants above `viabilityScore` in `src/lib/forecast.ts`. Keep the table in ARCHITECTURE.md's "Viability score" section and the `CardInfo` breakdown labels in `LocationCard.tsx` in sync with them.
+- **Tune the ranking:** the weights are named constants above `viabilityScore` in `src/lib/forecast.ts`. Keep the table in ARCHITECTURE.md's "Viability score" section and the `RankBreakdown` labels in `LocationCard.tsx` in sync with them.
 - **External forecast links** (`weather.gov` graphical hourly + `meteoblue`, on every card) are built in `LocationCard.tsx` (`buildForecastUrl`, `buildMeteoblueUrl`) — both have detailed comments on their URL params; keep those comments accurate if you change the query strings. Extra per-crag links are opt-in: list ids in a crag's `extraLinks` in `src/locations.ts`; each id's label and URL live in `EXTRA_LINKS` in `LocationCard.tsx`. Today the only one is `mwobs` (Mount Washington Observatory Higher Summits Forecast), set on the White Mountains crags (Cannon, Cathedral, Whitehorse; not Rumney).
 
 ## Note on docs

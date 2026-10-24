@@ -38,6 +38,7 @@ export function App() {
       (a, b) => (a.score?.total ?? Infinity) - (b.score?.total ?? Infinity),
     );
   }, [states, drives]);
+  const rankedCount = ranked.filter((r) => r.score != null).length;
 
   return (
     <>
@@ -91,6 +92,7 @@ export function App() {
               score={score}
               drive={drive}
               rank={score == null ? null : i + 1}
+              rankTotal={rankedCount}
               refreshNonce={refreshNonce}
             />
           ))}

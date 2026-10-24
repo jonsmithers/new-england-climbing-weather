@@ -148,6 +148,34 @@
   background: var(--accent-soft);
 }
 
+/* The badge is the score-breakdown button: reset the native button look, then
+   a quiet pressable affordance (pointer, border on hover/open). */
+button.rank {
+  appearance: none;
+  background: none;
+  line-height: inherit;
+  cursor: pointer;
+  transition:
+    border-color 140ms ease,
+    color 140ms ease;
+}
+
+button.rank-first {
+  background: var(--accent-soft);
+}
+
+button.rank:hover,
+button.rank[data-popup-open] {
+  border-color: var(--border-strong);
+  color: var(--text);
+}
+
+button.rank-first:hover,
+button.rank-first[data-popup-open] {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
 /* Body */
 
 .card-body {
@@ -332,53 +360,33 @@
   color: var(--text);
 }
 
-.card-info-trigger {
-  margin-left: auto;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  padding: 0;
-  border: none;
-  border-radius: 50%;
-  background: none;
-  color: var(--text-faint);
-  cursor: pointer;
-}
-
-.card-info-trigger:hover {
-  background: var(--surface-hover);
-  color: var(--text);
-}
-
-.card-info-row {
+.score-row {
   display: flex;
   gap: 1.25rem;
   justify-content: space-between;
 }
 
-.card-info-label {
+.score-label {
   color: var(--text-muted);
 }
 
-.card-info-value {
+.score-value {
   font-variant-numeric: tabular-nums;
   font-weight: 600;
 }
 
-.card-info-total {
+.score-total {
   margin-top: 0.25rem;
   padding-top: 0.25rem;
   border-top: 1px solid var(--border);
 }
 
-.card-info-total .card-info-label {
+.score-total .score-label {
   color: var(--text);
   font-weight: 600;
 }
 
-.card-info-hint {
+.score-hint {
   margin-top: 0.15rem;
   color: var(--text-faint);
   font-size: 0.72rem;
