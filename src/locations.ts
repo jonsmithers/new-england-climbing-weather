@@ -57,6 +57,7 @@ export const LOCATIONS: Location[] = [
   { id: 'ragged', name: 'Ragged Mountain', region: 'CT', lat: 41.6111, lon: -72.8639 },
   { id: 'crowhill', name: 'Crow Hill', region: 'MA', lat: 42.5722, lon: -71.8911 },
   { id: 'pawtuckaway', name: 'Pawtuckaway', region: 'NH', lat: 43.0945, lon: -71.1605 },
+  { id: 'stonehouse', name: 'Stonehouse Pond', region: 'NH', lat: 43.1998, lon: -71.0964 },
   { id: 'quincy', name: 'Quincy Quarries', region: 'MA', lat: 42.2360, lon: -71.0245 },
   { id: 'rossrocks', name: 'Ross Rocks', region: 'CT', lat: 41.77851, lon: -71.86603 },
 ];
